@@ -1,17 +1,5 @@
-#
-#
-#            Nim's Runtime Library
-#        (c) Copyright 2015 Andreas Rumpf
-#
-#    See the file "copying.txt", included in this
-#    distribution, for details about the copyright.
-#
-
-## A higher level `SQLite`:idx: database wrapper. This interface
-## is implemented for other databases too.
-##
-## See also: `db_odbc <db_odbc.html>`_, `db_postgres <db_postgres.html>`_,
-## `db_mysql <db_mysql.html>`_.
+## A fork of `db_sqlite <https://nim-lang.org/docs/db_sqlite.html>`_, Nim's
+## standard library higher level `SQLite`:idx: database wrapper.
 ##
 ## Parameter substitution
 ## ----------------------
@@ -26,12 +14,14 @@
 ## Examples
 ## --------
 ##
+## The following examples are same as for db_sqlite.
+##
 ## Opening a connection to a database
 ## ==================================
 ##
 ## .. code-block:: Nim
 ##     import db_sqlite
-##     let db = open("mytest.db", nil, nil, nil)  # user, password, database name can be nil
+##     let db = open("mytest.db", "", "", "")  # user, password, database name can be nil
 ##     db.close()
 ##
 ## Creating a table
@@ -83,80 +73,201 @@
 
 {.deadCodeElim: on.}  # dce option deprecated
 
-import strutils, sqlite3
+import strutils, sqlite3, options
 
 import db_common
 export db_common
 
 type
+  DbValueKind* = enum
+    ## Kind of value, corresponds to one of SQLite
+    ## `Fundamental Datatypes <https://www.sqlite.org/c3ref/c_blob.html>`_.
+    dvkInt    ## SQLITE_INTEGER, 64-bit signed integer
+    dvkFloat  ## SQLITE_FLOAT, 64-bit IEEE floating point number
+    dvkString ## SQLITE_TEXT, string
+    dvkBlob   ## SQLITE_BLOB, BLOB
+    dvkNull   ## SQLITE_NULL, NULL
+  DbValue* = object
+    ## SQLite value.
+    case kind*: DbValueKind
+    of dvkInt:
+      i*: int64
+    of dvkFloat:
+      f*: float
+    of dvkString:
+      s*: string
+    of dvkBlob:
+      b*: string
+    of dvkNull:
+      discard
   DbConn* = PSqlite3  ## encapsulates a database connection
-  Row* = seq[string]  ## a row of a dataset. NULL database values will be
-                       ## converted to nil.
-  InstantRow* = Pstmt  ## a handle that can be used to get a row's column
-                       ## text on demand
+  Row* = seq[DbValue] ## a row of a dataset
+  InstantRow* = Pstmt ## a handle that can be used to get a row's column
+                      ## text on demand
 {.deprecated: [TRow: Row, TDbConn: DbConn].}
 
+proc `==`*(a: DbValue, b: DbValue): bool =
+  ## Compare two DB values.
+  if a.kind != b.kind:
+    false
+  else:
+    case a.kind
+    of dvkInt:    a.i == b.i
+    of dvkFloat:  a.f == b.f
+    of dvkString: a.s == b.s
+    of dvkBlob:   a.b == b.b
+    of dvkNull:   true
+
 proc dbError*(db: DbConn) {.noreturn.} =
-  ## raises a DbError exception.
+  ## Raises a DbError exception.
   var e: ref DbError
   new(e)
   e.msg = $sqlite3.errmsg(db)
   raise e
 
 proc dbQuote*(s: string): string =
-  ## DB quotes the string.
+  ## DB quotes the string. Escaping values to generate SQL queries is not
+  ## recommended, bind values using the ``?`` (question mark) instead.
   result = "'"
   for c in items(s):
     if c == '\'': add(result, "''")
     else: add(result, c)
   add(result, '\'')
 
-proc dbFormat(formatstr: SqlQuery, args: varargs[string]): string =
-  result = ""
-  var a = 0
-  for c in items(string(formatstr)):
-    if c == '?':
-      add(result, dbQuote(args[a]))
-      inc(a)
-    else:
-      add(result, c)
+proc dbQuoteBlob*(s: string): string =
+  ## DB quotes the blob.
+  result = "x'"
+  for c in items(s):
+    add(result, toHex(c.byte))
+  add(result, '\'')
+
+proc `$`*(v: DbValue): string =
+  case v.kind
+  of dvkInt:    $v.i
+  of dvkFloat:  $v.f
+  of dvkString: v.s.dbQuote
+  of dvkBlob:   v.b.dbQuoteBlob
+  of dvkNull:   "NULL"
+
+proc bindVal(db: DbConn, stmt: sqlite3.Pstmt, idx: int32, value: DbValue): int32
+             {. raises: [] .} =
+  case value.kind:
+  of dvkInt:
+    bind_int64(stmt, idx, value.i)
+  of dvkFloat:
+    bind_double(stmt, idx, value.f)
+  of dvkString:
+    try:
+      bind_text(stmt, idx, value.s.cstring, value.s.len.int32, SQLITE_TRANSIENT)
+    except Exception:
+      # Compiler thinks that bind_text can raise an exception since the last
+      # argument is proc. But we pass an SQLITE_TRANSIENT constant here, it is
+      # not called by SQLite, so exception is never happens.
+      -1
+  of dvkBlob:
+    try:
+      bind_blob(stmt, idx, value.b.cstring, value.b.len.int32, SQLITE_TRANSIENT)
+    except Exception:
+      # Never happens, see above.
+      -1
+  of dvkNull:
+    bind_null(stmt, idx)
+
+proc dbValue*(v: int|int32|int64|uint): DbValue =
+  ## Wrap integer value.
+  DbValue(kind: dvkInt, i: v.int64)
+
+proc dbValue*(v: float): DbValue =
+  ## Wrap float value.
+  DbValue(kind: dvkFloat, f: v)
+
+proc dbValue*(v: DbValue): DbValue =
+  ## Return ``v`` as is.
+  v
+
+proc dbValue*(v: string): DbValue =
+  ## Wrap string value.
+  DbValue(kind: dvkString, s: v)
+
+proc dbValue*[T](v: Option[T]): DbValue =
+  ## Wrap value of type T or NULL.
+  if v.isSome:
+    v.unsafeGet.dbValue
+  else:
+    DbValue(kind: dvkNull)
+
+let dbNilValue* = DbValue(kind: dvkNull) ## Represents NULL value.
+
+proc dbBlobValue*(v: string): DbValue =
+  ## Wrap string value as BLOB.
+  DbValue(kind: dvkBlob, b: v)
+
+proc setupQueryVar(db: DbConn, query: SqlQuery, args: seq[DbValue],
+                   stmt: var Pstmt): int {.raises: [].} =
+  assert(not db.isNil, "Database not connected.")
+  var idx: int32 = 0
+  var rc = prepare_v2(db, query.cstring, query.string.len.cint, stmt, nil)
+  if rc != SQLITE_OK:
+    return rc
+  for arg in args:
+    inc idx
+    rc = db.bindVal(stmt, idx, arg)
+    if rc != SQLITE_OK:
+      return rc
+  return SQLITE_OK
+
+proc setupQuery(db: DbConn, query: SqlQuery, args: seq[DbValue]): Pstmt =
+  if setupQueryVar(db, query, args, result) != SQLITE_OK:
+    dbError(db)
 
 proc tryExec*(db: DbConn, query: SqlQuery,
-              args: varargs[string, `$`]): bool {.
+              args: varargs[DbValue, dbValue]): bool {.
               tags: [ReadDbEffect, WriteDbEffect].} =
-  ## tries to execute the query and returns true if successful, false otherwise.
-  assert(not db.isNil, "Database not connected.")
-  var q = dbFormat(query, args)
+  ## Tries to execute the query and returns true if successful, false otherwise.
   var stmt: sqlite3.Pstmt
-  if prepare_v2(db, q, q.len.cint, stmt, nil) == SQLITE_OK:
-    let x = step(stmt)
-    if x in {SQLITE_DONE, SQLITE_ROW}:
-      result = finalize(stmt) == SQLITE_OK
+  if setupQueryVar(db, query, @args, stmt) != SQLITE_OK:
+    return false
+  let x = step(stmt)
+  if x in {SQLITE_DONE, SQLITE_ROW}:
+    result = finalize(stmt) == SQLITE_OK
 
-proc exec*(db: DbConn, query: SqlQuery, args: varargs[string, `$`])  {.
+proc exec*(db: DbConn, query: SqlQuery, args: varargs[DbValue, dbValue]) {.
   tags: [ReadDbEffect, WriteDbEffect].} =
-  ## executes the query and raises DbError if not successful.
+  ## Executes the query and raises DbError if not successful.
   if not tryExec(db, query, args): dbError(db)
 
 proc newRow(L: int): Row =
   newSeq(result, L)
-  for i in 0..L-1: result[i] = ""
+  for i in 0..L-1: result[i] = DbValue(kind: dvkNull)
 
-proc setupQuery(db: DbConn, query: SqlQuery,
-                args: varargs[string]): Pstmt =
-  assert(not db.isNil, "Database not connected.")
-  var q = dbFormat(query, args)
-  if prepare_v2(db, q, q.len.cint, result, nil) != SQLITE_OK: dbError(db)
-
-proc setRow(stmt: Pstmt, r: var Row, cols: cint) =
-  for col in 0'i32..cols-1:
-    setLen(r[col], column_bytes(stmt, col)) # set capacity
-    setLen(r[col], 0)
-    let x = column_text(stmt, col)
-    if not isNil(x): add(r[col], x)
+proc setRow(stmt: Pstmt, r: var Row) =
+  let L = column_count(stmt)
+  setLen(r, L)
+  for col in 0'i32 ..< L:
+    r[col] =
+      case column_type(stmt, col):
+      of SQLITE_INTEGER: DbValue(kind: dvkInt, i: column_int64(stmt, col))
+      of SQLITE_FLOAT: DbValue(kind: dvkFloat, f: column_double(stmt, col))
+      of SQLITE_TEXT:
+        let text = column_text(stmt, col)
+        let bytes = column_bytes(stmt, col)
+        var s = newString(bytes)
+        if bytes != 0:
+          copyMem(addr(s[0]), text, bytes)
+        DbValue(kind: dvkString, s: s)
+      of SQLITE_BLOB:
+        let blob = column_blob(stmt, col)
+        let bytes = column_bytes(stmt, col)
+        var s = newString(bytes)
+        if bytes != 0:
+          copyMem(addr(s[0]), blob, bytes)
+        DbValue(kind: dvkBlob, b: s)
+      of SQLITE_NULL: DbValue(kind: dvkNull)
+      else: DbValue(kind: dvkNull)
 
 iterator fastRows*(db: DbConn, query: SqlQuery,
-                   args: varargs[string, `$`]): Row {.tags: [ReadDbEffect].} =
+                     args: varargs[DbValue, dbValue]): Row {.
+  tags: [ReadDbEffect].} =
   ## Executes the query and iterates over the result dataset.
   ##
   ## This is very fast, but potentially dangerous.  Use this iterator only
@@ -164,20 +275,20 @@ iterator fastRows*(db: DbConn, query: SqlQuery,
   ##
   ## Breaking the fastRows() iterator during a loop will cause the next
   ## database query to raise a DbError exception ``unable to close due to ...``.
-  var stmt = setupQuery(db, query, args)
+  var stmt = setupQuery(db, query, @args)
   var L = (column_count(stmt))
   var result = newRow(L)
   while step(stmt) == SQLITE_ROW:
-    setRow(stmt, result, L)
+    setRow(stmt, result)
     yield result
   if finalize(stmt) != SQLITE_OK: dbError(db)
 
 iterator instantRows*(db: DbConn, query: SqlQuery,
-                      args: varargs[string, `$`]): InstantRow
+                      args: varargs[DbValue, dbValue]): InstantRow
                       {.tags: [ReadDbEffect].} =
-  ## same as fastRows but returns a handle that can be used to get column text
+  ## Same as fastRows but returns a handle that can be used to get column text
   ## on demand using []. Returned handle is valid only within the iterator body.
-  var stmt = setupQuery(db, query, args)
+  var stmt = setupQuery(db, query, @args)
   while step(stmt) == SQLITE_ROW:
     yield stmt
   if finalize(stmt) != SQLITE_OK: dbError(db)
@@ -205,53 +316,57 @@ proc setColumns(columns: var DbColumns; x: PStmt) =
     columns[i].tableName = $column_table_name(x, i)
 
 iterator instantRows*(db: DbConn; columns: var DbColumns; query: SqlQuery,
-                      args: varargs[string, `$`]): InstantRow
+                      args: varargs[DbValue, dbValue]): InstantRow
                       {.tags: [ReadDbEffect].} =
-  ## same as fastRows but returns a handle that can be used to get column text
+  ## Same as fastRows but returns a handle that can be used to get column text
   ## on demand using []. Returned handle is valid only within the iterator body.
-  var stmt = setupQuery(db, query, args)
+  var stmt = setupQuery(db, query, @args)
   setColumns(columns, stmt)
   while step(stmt) == SQLITE_ROW:
     yield stmt
   if finalize(stmt) != SQLITE_OK: dbError(db)
 
 proc `[]`*(row: InstantRow, col: int32): string {.inline.} =
-  ## returns text for given column of the row
+  ## Returns text for given column of the row.
   $column_text(row, col)
 
 proc len*(row: InstantRow): int32 {.inline.} =
-  ## returns number of columns in the row
+  ## Returns number of columns in the row.
   column_count(row)
 
 proc getRow*(db: DbConn, query: SqlQuery,
-             args: varargs[string, `$`]): Row {.tags: [ReadDbEffect].} =
-  ## retrieves a single row. If the query doesn't return any rows, this proc
+             args: varargs[DbValue, dbValue]): Option[Row]
+             {.tags: [ReadDbEffect].} =
+  ## Retrieves a single row. If the query doesn't return any rows, this proc
   ## will return a Row with empty strings for each column.
-  var stmt = setupQuery(db, query, args)
-  var L = (column_count(stmt))
-  result = newRow(L)
+  var stmt = setupQuery(db, query, @args)
   if step(stmt) == SQLITE_ROW:
-    setRow(stmt, result, L)
-  if finalize(stmt) != SQLITE_OK: dbError(db)
+    let L = column_count(stmt)
+    var row = newRow(L)
+    setRow(stmt, row)
+    result = row.some
+  if finalize(stmt) != SQLITE_OK:
+    dbError(db)
 
 proc getAllRows*(db: DbConn, query: SqlQuery,
-                 args: varargs[string, `$`]): seq[Row] {.tags: [ReadDbEffect].} =
-  ## executes the query and returns the whole result dataset.
+                 args: varargs[DbValue, dbValue]): seq[Row]
+                 {.tags: [ReadDbEffect].} =
+  ## Executes the query and returns the whole result dataset.
   result = @[]
   for r in fastRows(db, query, args):
     result.add(r)
 
 iterator rows*(db: DbConn, query: SqlQuery,
-               args: varargs[string, `$`]): Row {.tags: [ReadDbEffect].} =
-  ## same as `FastRows`, but slower and safe.
+               args: varargs[DbValue, dbValue]): Row {.tags: [ReadDbEffect].} =
+  ## Same as `FastRows`, but slower and safe.
   for r in fastRows(db, query, args): yield r
 
 proc getValue*(db: DbConn, query: SqlQuery,
-               args: varargs[string, `$`]): string {.tags: [ReadDbEffect].} =
-  ## executes the query and returns the first column of the first row of the
-  ## result dataset. Returns "" if the dataset contains no rows or the database
-  ## value is NULL.
-  var stmt = setupQuery(db, query, args)
+               args: varargs[DbValue, dbValue]): string
+               {.tags: [ReadDbEffect].} =
+  ## Executes the query and returns the first column of the first row of the
+  ## result dataset.
+  var stmt = setupQuery(db, query, @args)
   if step(stmt) == SQLITE_ROW:
     let cb = column_bytes(stmt, 0)
     if cb == 0:
@@ -264,23 +379,23 @@ proc getValue*(db: DbConn, query: SqlQuery,
   if finalize(stmt) != SQLITE_OK: dbError(db)
 
 proc tryInsertID*(db: DbConn, query: SqlQuery,
-                  args: varargs[string, `$`]): int64
+                  args: varargs[DbValue, dbValue]): int64
                   {.tags: [WriteDbEffect], raises: [].} =
-  ## executes the query (typically "INSERT") and returns the
+  ## Executes the query (typically "INSERT") and returns the
   ## generated ID for the row or -1 in case of an error.
-  assert(not db.isNil, "Database not connected.")
-  var q = dbFormat(query, args)
   var stmt: sqlite3.Pstmt
-  result = -1
-  if prepare_v2(db, q, q.len.cint, stmt, nil) == SQLITE_OK:
-    if step(stmt) == SQLITE_DONE:
-      result = last_insert_rowid(db)
-    if finalize(stmt) != SQLITE_OK:
-      result = -1
+  if setupQueryVar(db, query, @args, stmt) != SQLITE_OK:
+    return -1
+  if step(stmt) != SQLITE_DONE:
+    return -1
+  if finalize(stmt) != SQLITE_OK:
+    return -1
+  return last_insert_rowid(db)
 
 proc insertID*(db: DbConn, query: SqlQuery,
-               args: varargs[string, `$`]): int64 {.tags: [WriteDbEffect].} =
-  ## executes the query (typically "INSERT") and returns the
+               args: varargs[DbValue, dbValue]): int64
+               {.tags: [WriteDbEffect].} =
+  ## Executes the query (typically "INSERT") and returns the
   ## generated ID for the row. For Postgre this adds
   ## ``RETURNING id`` to the query, so it only works if your primary key is
   ## named ``id``.
@@ -288,15 +403,15 @@ proc insertID*(db: DbConn, query: SqlQuery,
   if result < 0: dbError(db)
 
 proc execAffectedRows*(db: DbConn, query: SqlQuery,
-                       args: varargs[string, `$`]): int64 {.
+                       args: varargs[DbValue, dbValue]): int64 {.
                        tags: [ReadDbEffect, WriteDbEffect].} =
-  ## executes the query (typically "UPDATE") and returns the
+  ## Executes the query (typically "UPDATE") and returns the
   ## number of affected rows.
   exec(db, query, args)
   result = changes(db)
 
 proc close*(db: DbConn) {.tags: [DbEffect].} =
-  ## closes the database connection.
+  ## Closes the database connection.
   if sqlite3.close(db) != SQLITE_OK: dbError(db)
 
 proc open*(connection, user, password, database: string): DbConn {.
@@ -311,27 +426,12 @@ proc open*(connection, user, password, database: string): DbConn {.
 
 proc setEncoding*(connection: DbConn, encoding: string): bool {.
   tags: [DbEffect].} =
-  ## sets the encoding of a database connection, returns true for
+  ## Sets the encoding of a database connection, returns true for
   ## success, false for failure.
   ##
   ## Note that the encoding cannot be changed once it's been set.
   ## According to SQLite3 documentation, any attempt to change
   ## the encoding after the database is created will be silently
   ## ignored.
-  exec(connection, sql"PRAGMA encoding = ?", [encoding])
+  exec(connection, sql"PRAGMA encoding = ?", encoding)
   result = connection.getValue(sql"PRAGMA encoding") == encoding
-
-when not defined(testing) and isMainModule:
-  var db = open("db.sql", "", "", "")
-  exec(db, sql"create table tbl1(one varchar(10), two smallint)", [])
-  exec(db, sql"insert into tbl1 values('hello!',10)", [])
-  exec(db, sql"insert into tbl1 values('goodbye', 20)", [])
-  #db.query("create table tbl1(one varchar(10), two smallint)")
-  #db.query("insert into tbl1 values('hello!',10)")
-  #db.query("insert into tbl1 values('goodbye', 20)")
-  for r in db.rows(sql"select * from tbl1", []):
-    echo(r[0], r[1])
-  for r in db.instantRows(sql"select * from tbl1", []):
-    echo(r[0], r[1])
-
-  db_sqlite.close(db)
