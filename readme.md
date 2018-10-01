@@ -36,3 +36,15 @@ let blobValue = db.getAllRows(sql"SELECT * FROM BLOBS")[0][0].b
 
 db.close()
 ```
+
+# Roadmap
+
+This approach can be extended to other `db_*` modules in a consistent way:
+* `db_mysql`: use [`mysql_stmt_bind_param`], see [Nim#5884].
+* `db_postgres`: use [`PQexecParams`].
+* `db_odbc`: use [`SQLBindParameter`].
+
+[`mysql_stmt_bind_param`]: https://dev.mysql.com/doc/refman/5.7/en/mysql-stmt-bind-param.html
+[Nim#5884]: https://github.com/nim-lang/Nim/issues/5884
+[`PQexecParams`]: https://www.postgresql.org/docs/9.1/static/libpq-exec.html
+[`SQLBindParameter`]: https://docs.microsoft.com/en-us/sql/odbc/reference/syntax/sqlbindparameter-function?view=sqlallproducts-allversions
