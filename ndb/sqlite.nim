@@ -87,6 +87,8 @@ type
     dvkString ## SQLITE_TEXT, string
     dvkBlob   ## SQLITE_BLOB, BLOB
     dvkNull   ## SQLITE_NULL, NULL
+  DbBlob* = distinct string ## SQLite BLOB value.
+  DbNull* = object          ## SQLite NULL value.
   DbValue* = object
     ## SQLite value.
     case kind*: DbValueKind
@@ -97,7 +99,7 @@ type
     of dvkString:
       s*: string
     of dvkBlob:
-      b*: string
+      b*: DbBlob
     of dvkNull:
       discard
   DbConn* = PSqlite3  ## encapsulates a database connection
@@ -105,6 +107,10 @@ type
   InstantRow* = Pstmt ## a handle that can be used to get a row's column
                       ## text on demand
 {.deprecated: [TRow: Row, TDbConn: DbConn].}
+
+proc `==`*(a: DbBlob, b: DbBlob): bool =
+  ## Compare two blobs.
+  a.string == b.string
 
 proc `==`*(a: DbValue, b: DbValue): bool =
   ## Compare two DB values.
@@ -134,10 +140,10 @@ proc dbQuote*(s: string): string =
     else: add(result, c)
   add(result, '\'')
 
-proc dbQuoteBlob*(s: string): string =
+proc dbQuote*(s: DbBlob): string =
   ## DB quotes the blob.
   result = "x'"
-  for c in items(s):
+  for c in items(s.string):
     add(result, toHex(c.byte))
   add(result, '\'')
 
@@ -146,7 +152,7 @@ proc `$`*(v: DbValue): string =
   of dvkInt:    $v.i
   of dvkFloat:  $v.f
   of dvkString: v.s.dbQuote
-  of dvkBlob:   v.b.dbQuoteBlob
+  of dvkBlob:   v.b.dbQuote
   of dvkNull:   "NULL"
 
 proc bindVal(db: DbConn, stmt: sqlite3.Pstmt, idx: int32, value: DbValue): int32
@@ -166,12 +172,16 @@ proc bindVal(db: DbConn, stmt: sqlite3.Pstmt, idx: int32, value: DbValue): int32
       -1
   of dvkBlob:
     try:
-      bind_blob(stmt, idx, value.b.cstring, value.b.len.int32, SQLITE_TRANSIENT)
+      bind_blob(stmt, idx, value.b.string.cstring, value.b.string.len.int32, SQLITE_TRANSIENT)
     except Exception:
       # Never happens, see above.
       -1
   of dvkNull:
     bind_null(stmt, idx)
+
+proc dbValue*(v: DbValue): DbValue =
+  ## Return ``v`` as is.
+  v
 
 proc dbValue*(v: int|int32|int64|uint): DbValue =
   ## Wrap integer value.
@@ -181,13 +191,17 @@ proc dbValue*(v: float): DbValue =
   ## Wrap float value.
   DbValue(kind: dvkFloat, f: v)
 
-proc dbValue*(v: DbValue): DbValue =
-  ## Return ``v`` as is.
-  v
-
 proc dbValue*(v: string): DbValue =
   ## Wrap string value.
   DbValue(kind: dvkString, s: v)
+
+proc dbValue*(v: DbBlob): DbValue =
+  ## Wrap BLOB value.
+  DbValue(kind: dvkBlob, b: v)
+
+proc dbValue*(v: DbNull): DbValue =
+  ## Wrap NULL value.
+  DbValue(kind: dvkNull)
 
 proc dbValue*[T](v: Option[T]): DbValue =
   ## Wrap value of type T or NULL.
@@ -195,12 +209,6 @@ proc dbValue*[T](v: Option[T]): DbValue =
     v.unsafeGet.dbValue
   else:
     DbValue(kind: dvkNull)
-
-let dbNilValue* = DbValue(kind: dvkNull) ## Represents NULL value.
-
-proc dbBlobValue*(v: string): DbValue =
-  ## Wrap string value as BLOB.
-  DbValue(kind: dvkBlob, b: v)
 
 proc setupQueryVar(db: DbConn, query: SqlQuery, args: seq[DbValue],
                    stmt: var Pstmt): int {.raises: [].} =
@@ -240,30 +248,47 @@ proc newRow(L: int): Row =
   newSeq(result, L)
   for i in 0..L-1: result[i] = DbValue(kind: dvkNull)
 
+proc columnValue[T](stmt: Pstmt, col: int32): T =
+  when T is int64:
+    stmt.column_int64(col)
+  elif T is float:
+    stmt.column_double(col)
+  elif T is string:
+    let text = column_text(stmt, col)
+    let bytes = column_bytes(stmt, col)
+    var s = newString(bytes)
+    if bytes != 0:
+      copyMem(addr(s[0]), text, bytes)
+    return s
+  elif T is DbBlob:
+    let blob = column_blob(stmt, col)
+    let bytes = column_bytes(stmt, col)
+    var s = newString(bytes)
+    if bytes != 0:
+      copyMem(addr(s[0]), blob, bytes)
+    DbBlob s
+  elif T is DbNull:
+    DbNull
+  elif T is DbValue:
+    case stmt.column_type(col):
+    of SQLITE_INTEGER:
+      DbValue(kind: dvkInt,    i: stmt.columnValue[:int64](col))
+    of SQLITE_FLOAT:
+      DbValue(kind: dvkFloat,  f: stmt.columnValue[:float](col))
+    of SQLITE_TEXT:
+      DbValue(kind: dvkString, s: stmt.columnValue[:string](col))
+    of SQLITE_BLOB:
+      DbValue(kind: dvkBlob,   b: stmt.columnValue[:DbBlob](col))
+    of SQLITE_NULL:
+      DbValue(kind: dvkNull)
+    else:
+      DbValue(kind: dvkNull)
+
 proc setRow(stmt: Pstmt, r: var Row) =
   let L = column_count(stmt)
   setLen(r, L)
   for col in 0'i32 ..< L:
-    r[col] =
-      case column_type(stmt, col):
-      of SQLITE_INTEGER: DbValue(kind: dvkInt, i: column_int64(stmt, col))
-      of SQLITE_FLOAT: DbValue(kind: dvkFloat, f: column_double(stmt, col))
-      of SQLITE_TEXT:
-        let text = column_text(stmt, col)
-        let bytes = column_bytes(stmt, col)
-        var s = newString(bytes)
-        if bytes != 0:
-          copyMem(addr(s[0]), text, bytes)
-        DbValue(kind: dvkString, s: s)
-      of SQLITE_BLOB:
-        let blob = column_blob(stmt, col)
-        let bytes = column_bytes(stmt, col)
-        var s = newString(bytes)
-        if bytes != 0:
-          copyMem(addr(s[0]), blob, bytes)
-        DbValue(kind: dvkBlob, b: s)
-      of SQLITE_NULL: DbValue(kind: dvkNull)
-      else: DbValue(kind: dvkNull)
+    r[col] = stmt.columnValue[:DbValue](col)
 
 iterator fastRows*(db: DbConn, query: SqlQuery,
                      args: varargs[DbValue, dbValue]): Row {.

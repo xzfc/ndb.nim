@@ -54,11 +54,11 @@ suite "Examples":
 
     # Insert NULL
     db.exec(sql"CREATE TABLE foo (a, b)")
-    db.exec(sql"INSERT INTO foo VALUES (?, ?)", 1, dbNilValue)
+    db.exec(sql"INSERT INTO foo VALUES (?, ?)", 1, DbNull())
 
     # Insert binary blob
     db.exec(sql"CREATE TABLE blobs (a BLOB)")
-    db.exec(sql"INSERT INTO blobs VALUES (?)", dbBlobValue "\x00\x01\x02\x03")
+    db.exec(sql"INSERT INTO blobs VALUES (?)", DbBlob "\x00\x01\x02\x03")
     let blobValue = db.getAllRows(sql"SELECT * FROM BLOBS")[0][0].b
 
     db.close()
@@ -99,24 +99,24 @@ suite "Select value of type":
   test "empty blob":
     let db = open(":memory:", "", "", "")
     let rows = db.getRow(sql "SELECT x''").unsafeGet
-    check rows == @[DbValue(kind: dvkBlob, b: "")]
+    check rows == @[DbValue(kind: dvkBlob, b: DbBlob "")]
     db.close()
   test "nonempty blob":
     let db = open(":memory:", "", "", "")
     let rows = db.getRow(sql "SELECT x'313233'").unsafeGet
-    check rows == @[DbValue(kind: dvkBlob, b: "123")]
+    check rows == @[DbValue(kind: dvkBlob, b: DbBlob "123")]
     db.close()
   test "blob with nul":
     let db = open(":memory:", "", "", "")
     let rows = db.getRow(sql "SELECT x'007800'").unsafeGet
-    check rows == @[DbValue(kind: dvkBlob, b: "\0x\0")]
-    check rows != @[DbValue(kind: dvkBlob, b: "\0y\0")]
+    check rows == @[DbValue(kind: dvkBlob, b: DbBlob "\0x\0")]
+    check rows != @[DbValue(kind: dvkBlob, b: DbBlob "\0y\0")]
     db.close()
   test "blob with invalid utf8":
     let db = open(":memory:", "", "", "")
     let rows = db.getRow(sql "SELECT x'00fe00'").unsafeGet
-    check rows == @[DbValue(kind: dvkBlob, b: "\0\xfe\0")]
-    check rows != @[DbValue(kind: dvkBlob, b: "\0\xff\0")]
+    check rows == @[DbValue(kind: dvkBlob, b: DbBlob "\0\xfe\0")]
+    check rows != @[DbValue(kind: dvkBlob, b: DbBlob "\0\xff\0")]
     db.close()
   test "null":
     let db = open(":memory:", "", "", "")
@@ -142,12 +142,12 @@ suite "Bind value of type":
     db.close()
   test "blob":
     let db = open(":memory:", "", "", "")
-    let rows = db.getRow(sql "SELECT typeof(?)", dbBlobValue "").unsafeGet
+    let rows = db.getRow(sql "SELECT typeof(?)", DbBlob "").unsafeGet
     check rows == @[DbValue(kind: dvkString, s: "blob")]
     db.close()
   test "null":
     let db = open(":memory:", "", "", "")
-    let rows = db.getRow(sql "SELECT typeof(?)", dbNilValue).unsafeGet
+    let rows = db.getRow(sql "SELECT typeof(?)", DbNull()).unsafeGet
     check rows == @[DbValue(kind: dvkString, s: "null")]
     db.close()
 
@@ -169,9 +169,6 @@ suite "getRow()":
     db.close()
 
 suite "various":
-  test "just open":
-    let db = open(":memory:", "", "", "")
-    db.close()
   test "bind multiple statements":
     let db = open(":memory:", "", "", "")
     let rows = db.getAllRows(sql "SELECT ?, ?, ?, ?", "a", "b", "c", "d")

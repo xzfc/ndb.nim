@@ -27,11 +27,11 @@ let db = open(":memory:", "", "", "")
 
 # Insert NULL
 db.exec(sql"CREATE TABLE foo (a, b)")
-db.exec(sql"INSERT INTO foo VALUES (?, ?)", 1, dbNilValue)
+db.exec(sql"INSERT INTO foo VALUES (?, ?)", 1, DbNull())
 
 # Insert binary blob
 db.exec(sql"CREATE TABLE blobs (a BLOB)")
-db.exec(sql"INSERT INTO blobs VALUES (?)", dbBlobValue "\x00\x01\x02\x03")
+db.exec(sql"INSERT INTO blobs VALUES (?)", DbBlob "\x00\x01\x02\x03")
 let blobValue = db.getAllRows(sql"SELECT * FROM BLOBS")[0][0].b
 
 db.close()
