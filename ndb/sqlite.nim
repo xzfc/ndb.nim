@@ -87,6 +87,8 @@ type
     dvkString ## SQLITE_TEXT, string
     dvkBlob   ## SQLITE_BLOB, BLOB
     dvkNull   ## SQLITE_NULL, NULL
+  DbValueTypes* = int64|float|string|DbBlob|DbNull ## \
+    ## Possible value types
   DbBlob* = distinct string ## SQLite BLOB value.
   DbNull* = object          ## SQLite NULL value.
   DbValue* = object
@@ -248,7 +250,7 @@ proc newRow(L: int): Row =
   newSeq(result, L)
   for i in 0..L-1: result[i] = DbValue(kind: dvkNull)
 
-proc columnValue[T](stmt: Pstmt, col: int32): T =
+proc columnValue[T:DbValueTypes|DbValue](stmt: Pstmt, col: int32): T {.inline.} =
   when T is int64:
     stmt.column_int64(col)
   elif T is float:
@@ -268,7 +270,7 @@ proc columnValue[T](stmt: Pstmt, col: int32): T =
       copyMem(addr(s[0]), blob, bytes)
     DbBlob s
   elif T is DbNull:
-    DbNull
+    DbNull()
   elif T is DbValue:
     case stmt.column_type(col):
     of SQLITE_INTEGER:
@@ -311,7 +313,7 @@ iterator fastRows*(db: DbConn, query: SqlQuery,
 iterator instantRows*(db: DbConn, query: SqlQuery,
                       args: varargs[DbValue, dbValue]): InstantRow
                       {.tags: [ReadDbEffect].} =
-  ## Same as fastRows but returns a handle that can be used to get column text
+  ## Same as fastRows but returns a handle that can be used to get column values
   ## on demand using []. Returned handle is valid only within the iterator body.
   var stmt = setupQuery(db, query, @args)
   while step(stmt) == SQLITE_ROW:
@@ -343,7 +345,7 @@ proc setColumns(columns: var DbColumns; x: PStmt) =
 iterator instantRows*(db: DbConn; columns: var DbColumns; query: SqlQuery,
                       args: varargs[DbValue, dbValue]): InstantRow
                       {.tags: [ReadDbEffect].} =
-  ## Same as fastRows but returns a handle that can be used to get column text
+  ## Same as fastRows but returns a handle that can be used to get column values
   ## on demand using []. Returned handle is valid only within the iterator body.
   var stmt = setupQuery(db, query, @args)
   setColumns(columns, stmt)
@@ -351,12 +353,13 @@ iterator instantRows*(db: DbConn; columns: var DbColumns; query: SqlQuery,
     yield stmt
   if finalize(stmt) != SQLITE_OK: dbError(db)
 
-proc `[]`*(row: InstantRow, col: int32): string {.inline.} =
-  ## Returns text for given column of the row.
-  $column_text(row, col)
+proc `[]`*(row: InstantRow, col: int32, T: typedesc=string): T {.inline.} =
+  ## Return value for given column of the row.
+  ## ``T`` has to be one of ``DbValueTypes`` or ``DbValue``.
+  row.columnValue[:T](col)
 
 proc len*(row: InstantRow): int32 {.inline.} =
-  ## Returns number of columns in the row.
+  ## Return number of columns in the row.
   column_count(row)
 
 proc getRow*(db: DbConn, query: SqlQuery,

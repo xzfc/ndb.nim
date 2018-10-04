@@ -201,3 +201,33 @@ suite "various":
       @[DbValue(kind: dvkString, s: "b")],
     ]
     db.close()
+  test "instantRows()":
+    let db = open(":memory:", "", "", "")
+
+    db.exec sql"""
+      CREATE TABLE t1 (
+         Id    INTEGER PRIMARY KEY,
+         S     TEXT
+      )
+    """
+
+    db.exec sql"INSERT INTO t1 VALUES(?, ?)", 1, "foo"
+    db.exec sql"INSERT INTO t1 VALUES(?, ?)", 2, "bar"
+
+    var n = 0
+    for row in db.instantRows(sql"SELECT * FROM t1"):
+      case n
+      of 0:
+        check row[0, int64] == 1
+        check row[0] == "1"
+        check row[1] == "foo"
+      of 1:
+        check row[0, int64] == 2
+        check row[0] == "2"
+        check row[1] == "bar"
+      else:
+        check false
+      check row.len == 2
+      n.inc
+    check n == 2
+    db.close()
