@@ -256,12 +256,7 @@ proc columnValue[T:DbValueTypes|DbValue](stmt: Pstmt, col: int32): T {.inline.} 
   elif T is float:
     stmt.column_double(col)
   elif T is string:
-    let text = column_text(stmt, col)
-    let bytes = column_bytes(stmt, col)
-    var s = newString(bytes)
-    if bytes != 0:
-      copyMem(addr(s[0]), text, bytes)
-    return s
+    $column_text(stmt, col)
   elif T is DbBlob:
     let blob = column_blob(stmt, col)
     let bytes = column_bytes(stmt, col)

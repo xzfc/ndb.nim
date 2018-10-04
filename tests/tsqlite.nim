@@ -84,18 +84,6 @@ suite "Select value of type":
     let rows = db.getRow(sql "SELECT 'foo'").unsafeGet
     check rows == @[DbValue(kind: dvkString, s: "foo")]
     db.close()
-  test "text with nul":
-    let db = open(":memory:", "", "", "")
-    let rows = db.getRow(sql "SELECT cast(x'007800' as TEXT)").unsafeGet
-    check rows == @[DbValue(kind: dvkString, s: "\0x\0")]
-    check rows != @[DbValue(kind: dvkString, s: "\0y\0")]
-    db.close()
-  test "text with invalid utf8":
-    let db = open(":memory:", "", "", "")
-    let rows = db.getRow(sql "SELECT cast(x'00fe00' as TEXT)").unsafeGet
-    check rows == @[DbValue(kind: dvkString, s: "\0\xfe\0")]
-    check rows != @[DbValue(kind: dvkString, s: "\0\xff\0")]
-    db.close()
   test "empty blob":
     let db = open(":memory:", "", "", "")
     let rows = db.getRow(sql "SELECT x''").unsafeGet
