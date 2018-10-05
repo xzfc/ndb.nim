@@ -1,2 +1,5 @@
 nimcache
 /tests/tsqlite
+/tests/bsqlite
+/tests/bsqlite.0
+/tests/bsqlite.1

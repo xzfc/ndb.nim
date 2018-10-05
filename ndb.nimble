@@ -7,5 +7,9 @@ requires "nim >= 0.17.0"
 
 skipDirs = @["tests"]
 
-task test, "Runs the test suite":
+task test, "Run the test suite":
   exec "nim c -r tests/tsqlite.nim"
+
+task benchmark, "Compile the benchmark":
+  exec "nim c -d:mode=0 -d:release -o:tests/bsqlite.0 tests/bsqlite.nim"
+  exec "nim c -d:mode=1 -d:release -o:tests/bsqlite.1 tests/bsqlite.nim"
