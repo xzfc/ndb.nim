@@ -269,13 +269,13 @@ proc columnValue[T:DbValueTypes|DbValue](stmt: Pstmt, col: int32): T {.inline.} 
   elif T is DbValue:
     case stmt.column_type(col):
     of SQLITE_INTEGER:
-      DbValue(kind: dvkInt,    i: stmt.columnValue[:int64](col))
+      DbValue(kind: dvkInt,    i: columnValue[int64](stmt, col))
     of SQLITE_FLOAT:
-      DbValue(kind: dvkFloat,  f: stmt.columnValue[:float](col))
+      DbValue(kind: dvkFloat,  f: columnValue[float](stmt, col))
     of SQLITE_TEXT:
-      DbValue(kind: dvkString, s: stmt.columnValue[:string](col))
+      DbValue(kind: dvkString, s: columnValue[string](stmt, col))
     of SQLITE_BLOB:
-      DbValue(kind: dvkBlob,   b: stmt.columnValue[:DbBlob](col))
+      DbValue(kind: dvkBlob,   b: columnValue[DbBlob](stmt, col))
     of SQLITE_NULL:
       DbValue(kind: dvkNull)
     else:
@@ -285,7 +285,7 @@ proc setRow(stmt: Pstmt, r: var Row) =
   let L = column_count(stmt)
   setLen(r, L)
   for col in 0'i32 ..< L:
-    r[col] = stmt.columnValue[:DbValue](col)
+    r[col] = columnValue[DbValue](stmt, col)
 
 iterator fastRows*(db: DbConn, query: SqlQuery,
                      args: varargs[DbValue, dbValue]): Row {.
@@ -348,10 +348,18 @@ iterator instantRows*(db: DbConn; columns: var DbColumns; query: SqlQuery,
     yield stmt
   if finalize(stmt) != SQLITE_OK: dbError(db)
 
-proc `[]`*(row: InstantRow, col: int32, T: typedesc=string): T {.inline.} =
-  ## Return value for given column of the row.
-  ## ``T`` has to be one of ``DbValueTypes`` or ``DbValue``.
-  row.columnValue[:T](col)
+when NimMinor >= 19:
+  proc `[]`*(row: InstantRow, col: int32, T: typedesc=string): T {.inline.} =
+    ## Return value for given column of the row.
+    ## ``T`` has to be one of ``DbValueTypes`` or ``DbValue``.
+    columnValue[T](row, col)
+else:
+  proc `[]`*(row: InstantRow, col: int32, T: typedesc): T {.inline.} =
+    ## Return value for given column of the row.
+    ## ``T`` has to be one of ``DbValueTypes`` or ``DbValue``.
+    columnValue[T](row, col)
+  proc `[]`*(row: InstantRow, col: int32): string {.inline.} =
+    row[col, string]
 
 proc len*(row: InstantRow): int32 {.inline.} =
   ## Return number of columns in the row.
