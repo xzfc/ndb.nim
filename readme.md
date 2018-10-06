@@ -4,6 +4,8 @@ A fork of [db_sqlite], Nim's standard library higher level SQLite database wrapp
 Latest supported Nim version is 0.19.
 [Documentation]( https://xzfc.github.io/ndb.nim )
 
+Warning: work in progress, API is a subject of change.
+
 # Features
 
 * Binding ``?`` parameters is done with native SQlite [`sqlite3_bind_*`][sqlite3_bind] functions instead of stringifying and then escaping every parameter.
