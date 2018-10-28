@@ -377,8 +377,7 @@ proc len*(row: InstantRow): int32 {.inline.} =
 proc getRow*(db: DbConn, query: SqlQuery,
              args: varargs[DbValue, dbValue]): Option[Row]
              {.tags: [ReadDbEffect].} =
-  ## Retrieves a single row. If the query doesn't return any rows, this proc
-  ## will return a Row with empty strings for each column.
+  ## Retrieves a single row.
   var stmt = setupQuery(db, query, @args)
   if step(stmt) == SQLITE_ROW:
     let L = column_count(stmt)
