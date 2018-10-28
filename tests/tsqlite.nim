@@ -24,30 +24,30 @@ suite "Examples":
             "Jack")
     db.close()
   test "Larger example":
-    let theDb = open(":memory:", "", "", "")
+    let db = open(":memory:", "", "", "")
   
-    theDb.exec(sql"Drop table if exists myTestTbl")
-    theDb.exec(sql("""create table myTestTbl (
+    db.exec(sql"Drop table if exists myTestTbl")
+    db.exec(sql("""create table myTestTbl (
          Id    INTEGER PRIMARY KEY,
          Name  VARCHAR(50) NOT NULL,
          i     INT(11),
          f     DECIMAL(18,10))"""))
   
-    theDb.exec(sql"BEGIN")
+    db.exec(sql"BEGIN")
     for i in 1..1000:
-      theDb.exec(sql"INSERT INTO myTestTbl (name,i,f) VALUES (?,?,?)",
+      db.exec(sql"INSERT INTO myTestTbl (name,i,f) VALUES (?,?,?)",
             "Item#" & $i, i, sqrt(i.float))
-    theDb.exec(sql"COMMIT")
+    db.exec(sql"COMMIT")
   
-    for x in theDb.fastRows(sql"select * from myTestTbl"):
+    for x in db.fastRows(sql"select * from myTestTbl"):
       # echo x
       discard x
   
-    let id = theDb.tryInsertId(sql"INSERT INTO myTestTbl (name,i,f) VALUES (?,?,?)",
+    let id = db.tryInsertId(sql"INSERT INTO myTestTbl (name,i,f) VALUES (?,?,?)",
           "Item#1001", 1001, sqrt(1001.0))
-    # echo "Inserted item: ", theDb.getValue(sql"SELECT name FROM myTestTbl WHERE id=?", id)
+    discard db.getValue(string, sql"SELECT name FROM myTestTbl WHERE id=?", id).unsafeGet
   
-    theDb.close()
+    db.close()
   test "readme.md":
     #import ndb/sqlite
     let db = open(":memory:", "", "", "")
@@ -154,6 +154,23 @@ suite "getRow()":
     let db = open(":memory:", "", "", "")
     let row = db.getRow(sql"SELECT 'a' UNION SELECT 'b'")
     check row == some(@[dbValue "a"])
+    db.close()
+
+suite "getValue()":
+  test "none":
+    let db = open(":memory:", "", "", "")
+    let val = db.getValue(int64, sql"SELECT 'a' WHERE 1=0")
+    check val.isNone
+    db.close()
+  test "some int":
+    let db = open(":memory:", "", "", "")
+    let val = db.getValue(int64, sql"SELECT '1234'")
+    check val == 1234i64.some
+    db.close()
+  test "some string":
+    let db = open(":memory:", "", "", "")
+    let val = db.getValue(string, sql"SELECT 'abcd'")
+    check val == "abcd".some
     db.close()
 
 suite "various":

@@ -47,29 +47,29 @@
 ##
 ##  import db_sqlite, math
 ##
-##  let theDb = open("mytest.db", "", "", "")
+##  let db = open("mytest.db", "", "", "")
 ##
-##  theDb.exec(sql"Drop table if exists myTestTbl")
-##  theDb.exec(sql("""create table myTestTbl (
+##  db.exec(sql"Drop table if exists myTestTbl")
+##  db.exec(sql("""create table myTestTbl (
 ##       Id    INTEGER PRIMARY KEY,
 ##       Name  VARCHAR(50) NOT NULL,
 ##       i     INT(11),
 ##       f     DECIMAL(18,10))"""))
 ##
-##  theDb.exec(sql"BEGIN")
+##  db.exec(sql"BEGIN")
 ##  for i in 1..1000:
-##    theDb.exec(sql"INSERT INTO myTestTbl (name,i,f) VALUES (?,?,?)",
+##    db.exec(sql"INSERT INTO myTestTbl (name,i,f) VALUES (?,?,?)",
 ##          "Item#" & $i, i, sqrt(i.float))
-##  theDb.exec(sql"COMMIT")
+##  db.exec(sql"COMMIT")
 ##
-##  for x in theDb.fastRows(sql"select * from myTestTbl"):
+##  for x in db.fastRows(sql"select * from myTestTbl"):
 ##    echo x
 ##
-##  let id = theDb.tryInsertId(sql"INSERT INTO myTestTbl (name,i,f) VALUES (?,?,?)",
+##  let id = db.tryInsertId(sql"INSERT INTO myTestTbl (name,i,f) VALUES (?,?,?)",
 ##        "Item#1001", 1001, sqrt(1001.0))
-##  echo "Inserted item: ", theDb.getValue(sql"SELECT name FROM myTestTbl WHERE id=?", id)
+##  echo "Inserted item: ", db.getValue(string, sql"SELECT name FROM myTestTbl WHERE id=?", id).unsafeGet
 ##
-##  theDb.close()
+##  db.close()
 
 {.deadCodeElim: on.}  # dce option deprecated
 
@@ -400,22 +400,22 @@ iterator rows*(db: DbConn, query: SqlQuery,
   ## Same as `FastRows`, but slower and safe.
   for r in fastRows(db, query, args): yield r
 
-proc getValue*(db: DbConn, query: SqlQuery,
-               args: varargs[DbValue, dbValue]): string
-               {.tags: [ReadDbEffect].} =
+proc getValue*[T:DbValueTypes|DbValue](
+    db: DbConn, query: SqlQuery, args: varargs[DbValue, dbValue]): Option[T]
+    {.tags: [ReadDbEffect].} =
   ## Executes the query and returns the first column of the first row of the
   ## result dataset.
   var stmt = setupQuery(db, query, @args)
   if step(stmt) == SQLITE_ROW:
-    let cb = column_bytes(stmt, 0)
-    if cb == 0:
-      result = ""
-    else:
-      result = newStringOfCap(cb)
-      add(result, column_text(stmt, 0))
+    result = columnValue[T](stmt, 0).some
   else:
-    result = ""
+    result = T.none
   if finalize(stmt) != SQLITE_OK: dbError(db)
+
+proc getValue*(db: DbConn, T: typedesc,
+               query: SqlQuery, args: varargs[DbValue, dbValue]): Option[T]
+               {.tags: [ReadDbEffect].} =
+  getValue[T](db, query, args)
 
 proc tryInsertID*(db: DbConn, query: SqlQuery,
                   args: varargs[DbValue, dbValue]): int64
@@ -473,4 +473,4 @@ proc setEncoding*(connection: DbConn, encoding: string): bool {.
   ## the encoding after the database is created will be silently
   ## ignored.
   exec(connection, sql"PRAGMA encoding = ?", encoding)
-  result = connection.getValue(sql"PRAGMA encoding") == encoding
+  result = getValue[string](connection, sql"PRAGMA encoding") == encoding.some
