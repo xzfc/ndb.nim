@@ -76,7 +76,8 @@
 import strutils, sqlite3, options
 
 import db_common
-export db_common
+when not defined(NimDoc): # https://github.com/nim-lang/Nim/issues/9140
+  export db_common
 
 type
   DbValueKind* = enum
