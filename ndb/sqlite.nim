@@ -366,6 +366,7 @@ else:
     ## ``T`` has to be one of ``DbValueTypes`` or ``DbValue``.
     columnValue[T](row, col)
   proc `[]`*(row: InstantRow, col: int32): string {.inline.} =
+    ## Shortcut for ``row[col, string]``.
     row[col, string]
 
 proc len*(row: InstantRow): int32 {.inline.} =
