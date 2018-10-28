@@ -205,6 +205,13 @@ proc dbValue*(v: DbNull): DbValue =
   ## Wrap NULL value.
   DbValue(kind: dvkNull)
 
+when NimMinor >= 19:
+  proc dbValue*(v: type(nil)): DbValue =
+    ## Wrap NULL value.
+    ## Caveat: doesn't compile on 0.19.0 release, see
+    ## https://github.com/nim-lang/Nim/pull/9231.
+    DbValue(kind: dvkNull)
+
 proc dbValue*[T](v: Option[T]): DbValue =
   ## Wrap value of type T or NULL.
   if v.isSome:
