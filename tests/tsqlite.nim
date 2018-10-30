@@ -184,6 +184,7 @@ suite "various":
       DbValue(kind: dvkString, s: "d"),
     ]]
     db.close()
+
   test "multiple rows":
     let db = open(":memory:", "", "", "")
     let rows = db.getAllRows(sql """
@@ -196,6 +197,7 @@ suite "various":
       @[DbValue(kind: dvkString, s: "d")],
     ]
     db.close()
+
   test "bind limit":
     let db = open(":memory:", "", "", "")
     let rows = db.getAllRows(sql """
@@ -206,19 +208,43 @@ suite "various":
       @[DbValue(kind: dvkString, s: "b")],
     ]
     db.close()
-  test "instantRows()":
-    let db = open(":memory:", "", "", "")
 
+  test "rows()":
+    let db = open(":memory:", "", "", "")
     db.exec sql"""
       CREATE TABLE t1 (
          Id    INTEGER PRIMARY KEY,
          S     TEXT
       )
     """
-
     db.exec sql"INSERT INTO t1 VALUES(?, ?)", 1, "foo"
     db.exec sql"INSERT INTO t1 VALUES(?, ?)", 2, "bar"
+    var n = 0
+    for row in db.rows(sql"SELECT * FROM t1"):
+      case n
+      of 0:
+        check row[0] == dbValue 1
+        check row[1] == dbValue "foo"
+      of 1:
+        check row[0] == dbValue 2
+        check row[1] == dbValue "bar"
+      else:
+        check false
+      check row.len == 2
+      n.inc
+    check n == 2
+    db.close()
 
+  test "instantRows()":
+    let db = open(":memory:", "", "", "")
+    db.exec sql"""
+      CREATE TABLE t1 (
+         Id    INTEGER PRIMARY KEY,
+         S     TEXT
+      )
+    """
+    db.exec sql"INSERT INTO t1 VALUES(?, ?)", 1, "foo"
+    db.exec sql"INSERT INTO t1 VALUES(?, ?)", 2, "bar"
     var n = 0
     for row in db.instantRows(sql"SELECT * FROM t1"):
       case n
@@ -235,4 +261,22 @@ suite "various":
       check row.len == 2
       n.inc
     check n == 2
+    db.close()
+
+  test "rows() break":
+    let db = open(":memory:", "", "", "")
+    db.exec sql"CREATE TABLE t1 (id INTEGER PRIMARY KEY)"
+    db.exec sql"INSERT INTO t1 VALUES(1),(2),(3),(4),(5)"
+    var n = 0
+    for row in db.rows(sql"SELECT * FROM t1"):
+      if row[0] == dbValue 3: break
+    db.close()
+
+  test "instantRows() break":
+    let db = open(":memory:", "", "", "")
+    db.exec sql"CREATE TABLE t1 (id INTEGER PRIMARY KEY)"
+    db.exec sql"INSERT INTO t1 VALUES(1),(2),(3),(4),(5)"
+    var n = 0
+    for row in db.instantRows(sql"SELECT * FROM t1"):
+      if row[0, int64] == 3: break
     db.close()
