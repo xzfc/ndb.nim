@@ -39,7 +39,7 @@ suite "Examples":
             "Item#" & $i, i, sqrt(i.float))
     db.exec(sql"COMMIT")
   
-    for x in db.fastRows(sql"select * from myTestTbl"):
+    for x in db.rows(sql"select * from myTestTbl"):
       # echo x
       discard x
   

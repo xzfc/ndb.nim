@@ -62,7 +62,7 @@
 ##          "Item#" & $i, i, sqrt(i.float))
 ##  db.exec(sql"COMMIT")
 ##
-##  for x in db.fastRows(sql"select * from myTestTbl"):
+##  for x in db.rows(sql"select * from myTestTbl"):
 ##    echo x
 ##
 ##  let id = db.tryInsertId(sql"INSERT INTO myTestTbl (name,i,f) VALUES (?,?,?)",
@@ -238,6 +238,30 @@ proc setupQuery(db: DbConn, query: SqlQuery, args: seq[DbValue]): Pstmt =
   if setupQueryVar(db, query, args, result) != SQLITE_OK:
     dbError(db)
 
+# Specific
+proc tryNext*(db: DbConn, stmt: Pstmt): Option[bool] =
+  case step(stmt):
+  of SQLITE_ROW: true.some
+  of SQLITE_DONE: false.some
+  else: bool.none
+
+# Specific
+proc tryFinalize*(db: DbConn, stmt: Pstmt): bool =
+  finalize(stmt) == SQLITE_OK
+
+# Common
+proc next*(db: DbConn, stmt: Pstmt): bool =
+  let a = db.tryNext(stmt)
+  if a.isSome:
+    return a.unsafeGet
+  else:
+    dbError(db)
+
+# Common
+proc finalize*(db: DbConn, stmt: Pstmt) =
+  if not db.tryFinalize(stmt):
+    dbError(db)
+
 proc tryExec*(db: DbConn, query: SqlQuery,
               args: varargs[DbValue, dbValue]): bool {.
               tags: [ReadDbEffect, WriteDbEffect].} =
@@ -245,9 +269,8 @@ proc tryExec*(db: DbConn, query: SqlQuery,
   var stmt: sqlite3.Pstmt
   if setupQueryVar(db, query, @args, stmt) != SQLITE_OK:
     return false
-  let x = step(stmt)
-  if x in {SQLITE_DONE, SQLITE_ROW}:
-    result = finalize(stmt) == SQLITE_OK
+  if db.tryNext(stmt).isSome:
+    result = db.tryFinalize(stmt)
 
 proc exec*(db: DbConn, query: SqlQuery, args: varargs[DbValue, dbValue]) {.
   tags: [ReadDbEffect, WriteDbEffect].} =
@@ -295,33 +318,31 @@ proc setRow(stmt: Pstmt, r: var Row) =
   for col in 0'i32 ..< L:
     r[col] = columnValue[DbValue](stmt, col)
 
-iterator fastRows*(db: DbConn, query: SqlQuery,
+iterator rows*(db: DbConn, query: SqlQuery,
                      args: varargs[DbValue, dbValue]): Row {.
   tags: [ReadDbEffect].} =
   ## Executes the query and iterates over the result dataset.
-  ##
-  ## This is very fast, but potentially dangerous.  Use this iterator only
-  ## if you require **ALL** the rows.
-  ##
-  ## Breaking the fastRows() iterator during a loop will cause the next
-  ## database query to raise a DbError exception ``unable to close due to ...``.
   var stmt = setupQuery(db, query, @args)
-  var L = (column_count(stmt))
+  var L = column_count(stmt)
   var result = newRow(L)
-  while step(stmt) == SQLITE_ROW:
-    setRow(stmt, result)
-    yield result
-  if finalize(stmt) != SQLITE_OK: dbError(db)
+  try:
+    while db.next(stmt):
+      setRow(stmt, result)
+      yield result
+  finally:
+    db.finalize(stmt)
 
 iterator instantRows*(db: DbConn, query: SqlQuery,
                       args: varargs[DbValue, dbValue]): InstantRow
                       {.tags: [ReadDbEffect].} =
-  ## Same as fastRows but returns a handle that can be used to get column values
+  ## Same as rows but returns a handle that can be used to get column values
   ## on demand using []. Returned handle is valid only within the iterator body.
   var stmt = setupQuery(db, query, @args)
-  while step(stmt) == SQLITE_ROW:
-    yield stmt
-  if finalize(stmt) != SQLITE_OK: dbError(db)
+  try:
+    while db.next(stmt):
+      yield stmt
+  finally:
+    db.finalize(stmt)
 
 proc toTypeKind(t: var DbType; x: int32) =
   case x
@@ -348,14 +369,17 @@ proc setColumns(columns: var DbColumns; x: PStmt) =
 iterator instantRows*(db: DbConn; columns: var DbColumns; query: SqlQuery,
                       args: varargs[DbValue, dbValue]): InstantRow
                       {.tags: [ReadDbEffect].} =
-  ## Same as fastRows but returns a handle that can be used to get column values
+  ## Same as rows but returns a handle that can be used to get column values
   ## on demand using []. Returned handle is valid only within the iterator body.
   var stmt = setupQuery(db, query, @args)
-  setColumns(columns, stmt)
-  while step(stmt) == SQLITE_ROW:
-    yield stmt
-  if finalize(stmt) != SQLITE_OK: dbError(db)
+  try:
+    setColumns(columns, stmt)
+    while db.next(stmt):
+      yield stmt
+  finally:
+    db.finalize(stmt)
 
+# Specific
 when NimMinor >= 19:
   proc `[]`*(row: InstantRow, col: int32, T: typedesc=string): T {.inline.} =
     ## Return value for given column of the row.
@@ -370,53 +394,51 @@ else:
     ## Shortcut for ``row[col, string]``.
     row[col, string]
 
+# Specific
 proc len*(row: InstantRow): int32 {.inline.} =
   ## Return number of columns in the row.
   column_count(row)
 
+# Common
 proc getRow*(db: DbConn, query: SqlQuery,
              args: varargs[DbValue, dbValue]): Option[Row]
              {.tags: [ReadDbEffect].} =
   ## Retrieves a single row.
-  var stmt = setupQuery(db, query, @args)
-  if step(stmt) == SQLITE_ROW:
-    let L = column_count(stmt)
-    var row = newRow(L)
-    setRow(stmt, row)
-    result = row.some
-  if finalize(stmt) != SQLITE_OK:
-    dbError(db)
+  for row in db.rows(query, args):
+    return row.some
 
+# Common
 proc getAllRows*(db: DbConn, query: SqlQuery,
                  args: varargs[DbValue, dbValue]): seq[Row]
                  {.tags: [ReadDbEffect].} =
   ## Executes the query and returns the whole result dataset.
   result = @[]
-  for r in fastRows(db, query, args):
+  for r in db.rows(query, args):
     result.add(r)
 
-iterator rows*(db: DbConn, query: SqlQuery,
-               args: varargs[DbValue, dbValue]): Row {.tags: [ReadDbEffect].} =
-  ## Same as `FastRows`, but slower and safe.
-  for r in fastRows(db, query, args): yield r
+# Common
+iterator fastRows*(db: DbConn, query: SqlQuery,
+               args: varargs[DbValue, dbValue]): Row {.tags: [ReadDbEffect],
+               deprecated.} =
+  ## **Deprecated:** use ``rows`` instead.
+  for r in rows(db, query, args): yield r
 
+# Common
 proc getValue*[T:DbValueTypes|DbValue](
     db: DbConn, query: SqlQuery, args: varargs[DbValue, dbValue]): Option[T]
     {.tags: [ReadDbEffect].} =
   ## Executes the query and returns the first column of the first row of the
   ## result dataset.
-  var stmt = setupQuery(db, query, @args)
-  if step(stmt) == SQLITE_ROW:
-    result = columnValue[T](stmt, 0).some
-  else:
-    result = T.none
-  if finalize(stmt) != SQLITE_OK: dbError(db)
+  for row in db.instantRows(query, args):
+    return row[0, T].some
 
+# Common
 proc getValue*(db: DbConn, T: typedesc,
                query: SqlQuery, args: varargs[DbValue, dbValue]): Option[T]
                {.tags: [ReadDbEffect].} =
   getValue[T](db, query, args)
 
+# Should be common
 proc tryInsertID*(db: DbConn, query: SqlQuery,
                   args: varargs[DbValue, dbValue]): int64
                   {.tags: [WriteDbEffect], raises: [].} =
@@ -425,12 +447,13 @@ proc tryInsertID*(db: DbConn, query: SqlQuery,
   var stmt: sqlite3.Pstmt
   if setupQueryVar(db, query, @args, stmt) != SQLITE_OK:
     return -1
-  if step(stmt) != SQLITE_DONE:
+  if step(stmt) != SQLITE_DONE: # TODO
     return -1
-  if finalize(stmt) != SQLITE_OK:
+  if not db.tryFinalize(stmt):
     return -1
   return last_insert_rowid(db)
 
+# Common
 proc insertID*(db: DbConn, query: SqlQuery,
                args: varargs[DbValue, dbValue]): int64
                {.tags: [WriteDbEffect].} =
@@ -441,6 +464,7 @@ proc insertID*(db: DbConn, query: SqlQuery,
   result = tryInsertID(db, query, args)
   if result < 0: dbError(db)
 
+# Should be common
 proc execAffectedRows*(db: DbConn, query: SqlQuery,
                        args: varargs[DbValue, dbValue]): int64 {.
                        tags: [ReadDbEffect, WriteDbEffect].} =
@@ -449,10 +473,12 @@ proc execAffectedRows*(db: DbConn, query: SqlQuery,
   exec(db, query, args)
   result = changes(db)
 
+# Specific
 proc close*(db: DbConn) {.tags: [DbEffect].} =
   ## Closes the database connection.
   if sqlite3.close(db) != SQLITE_OK: dbError(db)
 
+# Specific
 proc open*(connection, user, password, database: string): DbConn {.
   tags: [DbEffect].} =
   ## opens a database connection. Raises `EDb` if the connection could not
@@ -463,6 +489,7 @@ proc open*(connection, user, password, database: string): DbConn {.
   else:
     dbError(db)
 
+# Specific
 proc setEncoding*(connection: DbConn, encoding: string): bool {.
   tags: [DbEffect].} =
   ## Sets the encoding of a database connection, returns true for
