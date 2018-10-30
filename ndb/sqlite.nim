@@ -220,57 +220,58 @@ proc dbValue*[T](v: Option[T]): DbValue =
   else:
     DbValue(kind: dvkNull)
 
+# Specific
 proc setupQueryVar(db: DbConn, query: SqlQuery, args: seq[DbValue],
-                   stmt: var Pstmt): int {.raises: [].} =
+                   stmt: var Pstmt): bool {.raises: [].} =
   assert(not db.isNil, "Database not connected.")
   var idx: int32 = 0
   var rc = prepare_v2(db, query.cstring, query.string.len.cint, stmt, nil)
   if rc != SQLITE_OK:
-    return rc
+    return false
   for arg in args:
     inc idx
     rc = db.bindVal(stmt, idx, arg)
     if rc != SQLITE_OK:
-      return rc
-  return SQLITE_OK
+      return false
+  return true
 
 proc setupQuery(db: DbConn, query: SqlQuery, args: seq[DbValue]): Pstmt =
-  if setupQueryVar(db, query, args, result) != SQLITE_OK:
+  if not setupQueryVar(db, query, args, result):
     dbError(db)
 
 # Specific
-proc tryNext*(db: DbConn, stmt: Pstmt): Option[bool] =
+proc tryNext*(stmt: Pstmt): Option[bool] =
   case step(stmt):
   of SQLITE_ROW: true.some
   of SQLITE_DONE: false.some
   else: bool.none
 
 # Specific
-proc tryFinalize*(db: DbConn, stmt: Pstmt): bool =
+proc tryFinalize*(stmt: Pstmt): bool =
   finalize(stmt) == SQLITE_OK
 
 # Common
-proc next*(db: DbConn, stmt: Pstmt): bool =
-  let a = db.tryNext(stmt)
+proc next*(stmt: Pstmt): bool =
+  let a = stmt.tryNext
   if a.isSome:
     return a.unsafeGet
   else:
-    dbError(db)
+    dbError(stmt.db_handle)
 
 # Common
-proc finalize*(db: DbConn, stmt: Pstmt) =
-  if not db.tryFinalize(stmt):
-    dbError(db)
+proc finalize*(stmt: Pstmt) =
+  if not stmt.tryFinalize:
+    dbError(stmt.db_handle)
 
 proc tryExec*(db: DbConn, query: SqlQuery,
               args: varargs[DbValue, dbValue]): bool {.
               tags: [ReadDbEffect, WriteDbEffect].} =
   ## Tries to execute the query and returns true if successful, false otherwise.
   var stmt: sqlite3.Pstmt
-  if setupQueryVar(db, query, @args, stmt) != SQLITE_OK:
+  if not setupQueryVar(db, query, @args, stmt):
     return false
-  if db.tryNext(stmt).isSome:
-    result = db.tryFinalize(stmt)
+  if stmt.tryNext.isSome:
+    result = stmt.tryFinalize
 
 proc exec*(db: DbConn, query: SqlQuery, args: varargs[DbValue, dbValue]) {.
   tags: [ReadDbEffect, WriteDbEffect].} =
@@ -326,11 +327,11 @@ iterator rows*(db: DbConn, query: SqlQuery,
   var L = column_count(stmt)
   var result = newRow(L)
   try:
-    while db.next(stmt):
+    while stmt.next:
       setRow(stmt, result)
       yield result
   finally:
-    db.finalize(stmt)
+    stmt.finalize
 
 iterator instantRows*(db: DbConn, query: SqlQuery,
                       args: varargs[DbValue, dbValue]): InstantRow
@@ -339,10 +340,10 @@ iterator instantRows*(db: DbConn, query: SqlQuery,
   ## on demand using []. Returned handle is valid only within the iterator body.
   var stmt = setupQuery(db, query, @args)
   try:
-    while db.next(stmt):
+    while stmt.next:
       yield stmt
   finally:
-    db.finalize(stmt)
+    stmt.finalize
 
 proc toTypeKind(t: var DbType; x: int32) =
   case x
@@ -374,10 +375,10 @@ iterator instantRows*(db: DbConn; columns: var DbColumns; query: SqlQuery,
   var stmt = setupQuery(db, query, @args)
   try:
     setColumns(columns, stmt)
-    while db.next(stmt):
+    while stmt.next:
       yield stmt
   finally:
-    db.finalize(stmt)
+    stmt.finalize
 
 # Specific
 when NimMinor >= 19:
@@ -445,11 +446,11 @@ proc tryInsertID*(db: DbConn, query: SqlQuery,
   ## Executes the query (typically "INSERT") and returns the
   ## generated ID for the row or -1 in case of an error.
   var stmt: sqlite3.Pstmt
-  if setupQueryVar(db, query, @args, stmt) != SQLITE_OK:
+  if not setupQueryVar(db, query, @args, stmt):
     return -1
   if step(stmt) != SQLITE_DONE: # TODO
     return -1
-  if not db.tryFinalize(stmt):
+  if not stmt.tryFinalize:
     return -1
   return last_insert_rowid(db)
 
