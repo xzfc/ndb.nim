@@ -3,7 +3,7 @@ author        = "Albert Safin <xzfcpw@gmail.com>"
 description   = "A db_sqlite fork with a proper typing"
 license       = "MIT"
 
-requires "nim >= 0.17.0"
+requires "nim >= 0.18.0"
 
 skipDirs = @["tests"]
 
