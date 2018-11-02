@@ -270,7 +270,7 @@ proc finalize(stmt: Pstmt) =
 
 proc tryExec*(db: DbConn, query: SqlQuery,
               args: varargs[DbValue, dbValue]): bool {.
-              tags: [ReadDbEffect, WriteDbEffect].} =
+              tags: [ReadDbEffect, WriteDbEffect], raises: [].} =
   ## Tries to execute the query and returns true if successful, false otherwise.
   var stmt: sqlite3.Pstmt
   if not setupQueryVar(db, query, @args, stmt):
