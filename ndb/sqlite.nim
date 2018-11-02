@@ -240,18 +240,22 @@ proc setupQuery(db: DbConn, query: SqlQuery, args: seq[DbValue]): Pstmt =
     dbError(db)
 
 # Specific
-proc tryNext*(stmt: Pstmt): Option[bool] =
+proc tryNext(stmt: Pstmt): Option[bool] {.raises: [].} =
+  ## Try to advance cursor by one row.
   case step(stmt):
-  of SQLITE_ROW: true.some
-  of SQLITE_DONE: false.some
-  else: bool.none
+  of SQLITE_ROW:  true.some  # Success, next row
+  of SQLITE_DONE: false.some # Success, no more rows
+  else:           bool.none  # Error
 
 # Specific
-proc tryFinalize*(stmt: Pstmt): bool =
+proc tryFinalize(stmt: Pstmt): bool {.raises: [].} =
+  ## Finalize statement, return ``true`` on success.
   finalize(stmt) == SQLITE_OK
 
 # Common
-proc next*(stmt: Pstmt): bool =
+proc next(stmt: Pstmt): bool =
+  ## Advance cursor by one row.
+  ## Return ``true`` if there are more rows.
   let a = stmt.tryNext
   if a.isSome:
     return a.unsafeGet
@@ -259,7 +263,8 @@ proc next*(stmt: Pstmt): bool =
     dbError(stmt.db_handle)
 
 # Common
-proc finalize*(stmt: Pstmt) =
+proc finalize(stmt: Pstmt) =
+  ## Finalize statement or raise DbError if not successful.
   if not stmt.tryFinalize:
     dbError(stmt.db_handle)
 
