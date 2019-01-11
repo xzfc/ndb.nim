@@ -506,3 +506,32 @@ proc setEncoding*(connection: DbConn, encoding: string): bool {.
   ## ignored.
   exec(connection, sql"PRAGMA encoding = ?", encoding)
   result = getValue[string](connection, sql"PRAGMA encoding") == encoding.some
+  
+proc doFullDatabaseBackup*(srcConn : var DbConn, dstConn : var DbConn, srcDbName : string = "main" , dstDbName : string = "main" ) : int {.
+  tags: [DbEffect].} =
+  ## performs a hot database backup from the src to destionation db.
+  ##
+  ## this proc returns if the entire database is copied completely.
+  ## the dstConn is not allowed to have any transactions open.
+  ##
+  ## never copy the database file directly while connections attached to it.
+  ## the default of the src and destination database name is "main".
+  ##
+  ## the the src and destination db could be of type in memory or file based.
+  ## just ensure that the dest db is completely empty (or not existent)
+  ## and the page_size is equal to the src db (see pragma page_size)
+  ##
+  ## for more information please look at https://www.sqlite.org/backup.html
+  var pBackup : PSQLite3Backup
+
+  pBackup = dstConn.sqlite3_backup_init(dstDbName,srcConn,srcDbName)
+  
+  if pBackup.isNil:
+    # backup errcode is written into the dest connection
+    dbError(dstConn)
+  else:
+    # TODO: backup with pagecount (iterator)
+    discard sqlite3.sqlite3_backup_step(pBackup,-1.int)
+    discard sqlite3.sqlite3_backup_finish(pBackup)
+  
+  result = sqlite3.errcode(dstConn)  

@@ -280,3 +280,21 @@ suite "various":
     for row in db.instantRows(sql"SELECT * FROM t1"):
       if row[0, int64] == 3: break
     db.close()
+
+  test "database_backup_inmemory":
+  # test hot database backup. src and dst database can be file-based or memory-based
+    var srcConn = open(":memory:", "", "", "")
+    var dstConn = open(":memory:", "", "", "")
+
+    srcConn.exec sql"CREATE TABLE t1 (id INTEGER PRIMARY KEY)"
+    srcConn.exec sql"BEGIN TRANSACTION"
+    srcConn.exec sql"INSERT INTO t1 VALUES(1),(2),(3),(4),(5)"
+    srcConn.exec sql"COMMIT"
+   
+    check srcConn.doFullDatabaseBackup(dstConn) == 0
+    
+    for row in dstConn.instantRows(sql"SELECT * FROM t1 where id = 4"):
+      check row[0, int64] == 4
+
+    srcConn.close()
+    dstConn.close()
