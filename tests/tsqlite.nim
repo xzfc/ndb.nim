@@ -291,7 +291,7 @@ suite "various":
     srcConn.exec sql"INSERT INTO t1 VALUES(1),(2),(3),(4),(5)"
     srcConn.exec sql"COMMIT"
    
-    check srcConn.doFullDatabaseBackup(dstConn) == 0
+    check srcConn.dumpDatabaseInto(dstConn) == 0
     
     for row in dstConn.instantRows(sql"SELECT * FROM t1 where id = 4"):
       check row[0, int64] == 4
