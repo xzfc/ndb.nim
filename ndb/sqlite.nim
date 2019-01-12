@@ -507,7 +507,7 @@ proc setEncoding*(connection: DbConn, encoding: string): bool {.
   exec(connection, sql"PRAGMA encoding = ?", encoding)
   result = getValue[string](connection, sql"PRAGMA encoding") == encoding.some
   
-proc doFullDatabaseBackup*(srcConn : var DbConn, dstConn : var DbConn, srcDbName : string = "main" , dstDbName : string = "main" ) : int {.
+proc dumpDatabaseInto*(srcConn : var DbConn, dstConn : var DbConn, srcDbName : string = "main" , dstDbName : string = "main" ) : int {.
   tags: [DbEffect].} =
   ## performs a hot database backup from the src to destionation db.
   ##
@@ -524,14 +524,14 @@ proc doFullDatabaseBackup*(srcConn : var DbConn, dstConn : var DbConn, srcDbName
   ## for more information please look at https://www.sqlite.org/backup.html
   var pBackup : PSQLite3Backup
 
-  pBackup = dstConn.sqlite3_backup_init(dstDbName,srcConn,srcDbName)
+  pBackup = dstConn.backup_init(dstDbName,srcConn,srcDbName)
   
   if pBackup.isNil:
     # backup errcode is written into the dest connection
     dbError(dstConn)
   else:
     # TODO: backup with pagecount (iterator)
-    discard sqlite3.sqlite3_backup_step(pBackup,-1.int)
-    discard sqlite3.sqlite3_backup_finish(pBackup)
+    discard sqlite3.backup_step(pBackup,-1.int)
+    discard sqlite3.backup_finish(pBackup)
   
   result = sqlite3.errcode(dstConn)  

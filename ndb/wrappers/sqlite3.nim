@@ -26,18 +26,18 @@ type
   Sqlite3Backup* {.pure , final .} = object 
   PSqlite3Backup* = ptr Sqlite3Backup
 
-proc sqlite3_backup_init*( destDb :  PSqlite3, destDbName : cstring,
+proc backup_init*( destDb :  PSqlite3, destDbName : cstring,
                           srcDb : PSqlite3, srcDbName : cstring) :  PSqlite3Backup{.
                 importc: "sqlite3_backup_init", cdecl, dynlib: Lib.}
-proc sqlite3_backup_step*(p : pointer, nPage : int) : int{.
+proc backup_step*(p : pointer, nPage : int) : int{.
                 importc: "sqlite3_backup_step", cdecl, dynlib: Lib.}
-proc sqlite3_backup_remaining*(p : var PSqlite3Backup) : int {.
+proc backup_remaining*(p : var PSqlite3Backup) : int {.
                 importc: "sqlite3_backup_remaining", cdecl, dynlib: Lib.}
-proc sqlite3_backup_pagecount*(p : var PSqlite3Backup) : int {.
+proc backup_pagecount*(p : var PSqlite3Backup) : int {.
                 importc: "sqlite3_backup_pagecount", cdecl, dynlib: Lib.}
-proc sqlite3_backup_finish*(p : pointer) : int {.
+proc backup_finish*(p : pointer) : int {.
                 importc: "sqlite3_backup_finish", cdecl, dynlib: Lib.}
-proc sqlite3_extended_result_codes* : int {.
+proc extended_result_codes* : int {.
                 importc: "sqlite3_extended_result_codes", cdecl, dynlib: Lib.}
-proc sqlite3_extended_errcode*: int {.
+proc extended_errcode*: int {.
                 importc: "sqlite3_extended_errcode", cdecl, dynlib: Lib.}
