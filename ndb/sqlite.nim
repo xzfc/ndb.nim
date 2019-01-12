@@ -506,3 +506,28 @@ proc setEncoding*(connection: DbConn, encoding: string): bool {.
   ## ignored.
   exec(connection, sql"PRAGMA encoding = ?", encoding)
   result = getValue[string](connection, sql"PRAGMA encoding") == encoding.some
+
+proc openV2*(filename : string, user : string, password : string, 
+             flags : int32 = sqlite3.SQLITE_OPEN_READWRITE or 
+             sqlite3.SQLITE_OPEN_CREATE, zVfsName: string): DbConn {.
+  tags: [DbEffect].} =
+  ## v2 open interface. default flag setup is 
+  ## SQLITE_OPEN_READWRITE or SQLITE_OPEN_CREATE
+  var db: DbConn
+  if sqlite3.sqlite3_open_v2(filename,db,flags,zVfsName) == SQLITE_OK:
+    result = db
+  else:
+    dbError(db)
+
+proc openReadonly*(filename:string, user:string, password:string): DbConn {.
+  tags: [DbEffect].} =
+  ## opens a database in readonly mode. Raises `EDb` if the connection could not
+  ## be established. Only the ``connection`` parameter is used for ``sqlite``.
+  ## the database file is opened  readonly by sqlite3 at os file-level.
+  ## zVfsName is internally nil (default vfs)
+  var db: DbConn
+  if sqlite3.sqlite3_open_v2(filename,db,
+                             sqlite3.SQLITE_OPEN_READONLY,nil) == SQLITE_OK:
+    result = db
+  else:
+    dbError(db)
