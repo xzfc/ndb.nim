@@ -220,23 +220,66 @@ proc dbValue*[T](v: Option[T]): DbValue =
     DbValue(kind: dvkNull)
 
 # Specific
-proc setupQueryVar(db: DbConn, query: SqlQuery, args: seq[DbValue],
-                   stmt: var Pstmt): bool {.raises: [].} =
-  assert(not db.isNil, "Database not connected.")
+proc tryFinalize(stmt: Pstmt): bool {.raises: [].} =
+  ## Finalize statement, return ``true`` on success.
+  finalize(stmt) == SQLITE_OK
+
+# Specific
+proc bindArgs(db: DbConn, stmt: var sqlite3.Pstmt, query: SqlQuery,
+              args: seq[DbValue]): bool {.raises: [].} =
   var idx: int32 = 0
-  var rc = prepare_v2(db, query.cstring, query.string.len.cint, stmt, nil)
-  if rc != SQLITE_OK:
-    return false
   for arg in args:
     inc idx
-    rc = db.bindVal(stmt, idx, arg)
-    if rc != SQLITE_OK:
+    if db.bindVal(stmt, idx, arg) != SQLITE_OK:
       return false
   return true
 
-proc setupQuery(db: DbConn, query: SqlQuery, args: seq[DbValue]): Pstmt =
-  if not setupQueryVar(db, query, args, result):
-    dbError(db)
+template tryWithStmt(db: DbConn, query: SqlQuery, args: seq[DbValue],
+                     body: untyped): bool =
+  ## A common template dealing with statement initialization and finalization:
+  ##
+  ## 1. Initialize a statement.
+  ## 2. Bind arguments.
+  ## 3. Run `body` (statement is available as `var stmt: sqlite.Pstmt`).
+  ## 4. Finalize the statement.
+  ## 5. Yield `true` on success and `false` on failure.
+  ##
+  ## `body` is assumed to yield `true` if it succeeds, and `false` otherwise.
+  ## Note that it is assumed (but not enforced) that `body` does not raise
+  ## or break!
+  assert(not db.isNil, "Database not connected.")
+  var stmt {.inject.}: sqlite3.Pstmt
+  var ok: bool =
+    prepare_v2(db, query.cstring, query.string.len.cint, stmt, nil) == SQLITE_OK
+  if ok:
+    ok = db.bindArgs(stmt, query, args)
+    if ok: ok = body
+    ok = tryFinalize(stmt) and ok
+  ok
+
+template withStmt(db: DbConn, query: SqlQuery, args: seq[DbValue],
+                  body: untyped): untyped =
+  ## A common template dealing with statement initialization and finalization:
+  ##
+  ## 1. Initialize a statement.
+  ## 2. Bind arguments.
+  ## 3. Run `body` (statement is available as `var stmt: sqlite.Pstmt`).
+  ## 4. Finalize the statement.
+  ## 5. Yield the result of evaluating the `body`.
+  ##
+  ## Unlike `tryWithStmt`, this throws a `DbError` in case of a failure!
+  assert(not db.isNil, "Database not connected.")
+  var stmt {.inject.}: sqlite3.Pstmt
+  var ok: bool =
+    prepare_v2(db, query.cstring, query.string.len.cint, stmt, nil) == SQLITE_OK
+  if not ok: dbError(db)
+
+  try:
+    if not db.bindArgs(stmt, query, args): dbError(db)
+    body
+  finally:
+    if not tryFinalize(stmt):
+      dbError(db)
 
 # Specific
 proc tryNext(stmt: Pstmt): Option[bool] {.raises: [].} =
@@ -245,11 +288,6 @@ proc tryNext(stmt: Pstmt): Option[bool] {.raises: [].} =
   of SQLITE_ROW:  true.some  # Success, next row
   of SQLITE_DONE: false.some # Success, no more rows
   else:           bool.none  # Error
-
-# Specific
-proc tryFinalize(stmt: Pstmt): bool {.raises: [].} =
-  ## Finalize statement, return ``true`` on success.
-  finalize(stmt) == SQLITE_OK
 
 # Common
 proc next(stmt: Pstmt): bool =
@@ -271,11 +309,7 @@ proc tryExec*(db: DbConn, query: SqlQuery,
               args: varargs[DbValue, dbValue]): bool {.
               tags: [ReadDbEffect, WriteDbEffect], raises: [].} =
   ## Tries to execute the query and returns true if successful, false otherwise.
-  var stmt: sqlite3.Pstmt
-  if not setupQueryVar(db, query, @args, stmt):
-    return false
-  if stmt.tryNext.isSome:
-    result = stmt.tryFinalize
+  db.tryWithStmt(query, @args, stmt.tryNext.isSome)
 
 proc exec*(db: DbConn, query: SqlQuery, args: varargs[DbValue, dbValue]) {.
   tags: [ReadDbEffect, WriteDbEffect].} =
@@ -327,27 +361,21 @@ iterator rows*(db: DbConn, query: SqlQuery,
                      args: varargs[DbValue, dbValue]): Row {.
   tags: [ReadDbEffect].} =
   ## Executes the query and iterates over the result dataset.
-  var stmt = setupQuery(db, query, @args)
-  var L = column_count(stmt)
-  var result = newRow(L)
-  try:
+  db.withStmt(query, @args) do:
+    var L = column_count(stmt)
+    var result = newRow(L)
     while stmt.next:
       setRow(stmt, result)
       yield result
-  finally:
-    stmt.finalize
 
 iterator instantRows*(db: DbConn, query: SqlQuery,
                       args: varargs[DbValue, dbValue]): InstantRow
                       {.tags: [ReadDbEffect].} =
   ## Same as rows but returns a handle that can be used to get column values
   ## on demand using []. Returned handle is valid only within the iterator body.
-  var stmt = setupQuery(db, query, @args)
-  try:
+  withStmt(db, query, @args) do:
     while stmt.next:
       yield stmt
-  finally:
-    stmt.finalize
 
 proc toTypeKind(t: var DbType; x: int32) =
   case x
@@ -376,13 +404,10 @@ iterator instantRows*(db: DbConn; columns: var DbColumns; query: SqlQuery,
                       {.tags: [ReadDbEffect].} =
   ## Same as rows but returns a handle that can be used to get column values
   ## on demand using []. Returned handle is valid only within the iterator body.
-  var stmt = setupQuery(db, query, @args)
-  try:
+  db.withStmt(query, @args) do:
     setColumns(columns, stmt)
     while stmt.next:
       yield stmt
-  finally:
-    stmt.finalize
 
 # Specific
 when NimMinor >= 19:
@@ -449,14 +474,11 @@ proc tryInsertID*(db: DbConn, query: SqlQuery,
                   {.tags: [WriteDbEffect], raises: [].} =
   ## Executes the query (typically "INSERT") and returns the
   ## generated ID for the row or -1 in case of an error.
-  var stmt: sqlite3.Pstmt
-  if not setupQueryVar(db, query, @args, stmt):
-    return -1
-  if step(stmt) != SQLITE_DONE: # TODO
-    return -1
-  if not stmt.tryFinalize:
-    return -1
-  return last_insert_rowid(db)
+  let ok = db.tryWithStmt(query, @args) do:
+    step(stmt) == SQLITE_DONE
+
+  if ok: last_insert_rowid(db)
+  else: -1
 
 # Common
 proc insertID*(db: DbConn, query: SqlQuery,
