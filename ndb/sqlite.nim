@@ -234,26 +234,24 @@ proc bindArgs(db: DbConn, stmt: var sqlite3.Pstmt, query: SqlQuery,
       return false
   return true
 
-template tryWithStmt(db: DbConn, query: SqlQuery, args: seq[DbValue],
-                     body: untyped): bool =
+proc tryWithStmt(db: DbConn, query: SqlQuery, args: seq[DbValue],
+                 body: proc(stmt: Pstmt): bool {.raises: [], tags: [].}): bool =
   ## A common template dealing with statement initialization and finalization:
   ##
   ## 1. Initialize a statement.
   ## 2. Bind arguments.
-  ## 3. Run `body` (statement is available as `var stmt: sqlite.Pstmt`).
+  ## 3. Run `body`.
   ## 4. Finalize the statement.
   ## 5. Yield `true` on success and `false` on failure.
   ##
   ## `body` is assumed to yield `true` if it succeeds, and `false` otherwise.
-  ## Note that it is assumed (but not enforced) that `body` does not raise
-  ## or break!
   assert(not db.isNil, "Database not connected.")
-  var stmt {.inject.}: sqlite3.Pstmt
+  var stmt: Pstmt
   var ok: bool =
     prepare_v2(db, query.cstring, query.string.len.cint, stmt, nil) == SQLITE_OK
   if ok:
     ok = db.bindArgs(stmt, query, args)
-    if ok: ok = body
+    if ok: ok = body(stmt)
     ok = tryFinalize(stmt) and ok
   ok
 
@@ -269,7 +267,7 @@ template withStmt(db: DbConn, query: SqlQuery, args: seq[DbValue],
   ##
   ## Unlike `tryWithStmt`, this throws a `DbError` in case of a failure!
   assert(not db.isNil, "Database not connected.")
-  var stmt {.inject.}: sqlite3.Pstmt
+  var stmt {.inject.}: Pstmt
   var ok: bool =
     prepare_v2(db, query.cstring, query.string.len.cint, stmt, nil) == SQLITE_OK
   if not ok: dbError(db)
@@ -309,7 +307,8 @@ proc tryExec*(db: DbConn, query: SqlQuery,
               args: varargs[DbValue, dbValue]): bool {.
               tags: [ReadDbEffect, WriteDbEffect], raises: [].} =
   ## Tries to execute the query and returns true if successful, false otherwise.
-  db.tryWithStmt(query, @args, stmt.tryNext.isSome)
+  db.tryWithStmt(query, @args) do (stmt: PStmt) -> bool:
+    stmt.tryNext.isSome
 
 proc exec*(db: DbConn, query: SqlQuery, args: varargs[DbValue, dbValue]) {.
   tags: [ReadDbEffect, WriteDbEffect].} =
@@ -474,7 +473,7 @@ proc tryInsertID*(db: DbConn, query: SqlQuery,
                   {.tags: [WriteDbEffect], raises: [].} =
   ## Executes the query (typically "INSERT") and returns the
   ## generated ID for the row or -1 in case of an error.
-  let ok = db.tryWithStmt(query, @args) do:
+  let ok = db.tryWithStmt(query, @args) do (stmt: Pstmt) -> bool:
     step(stmt) == SQLITE_DONE
 
   if ok: last_insert_rowid(db)
