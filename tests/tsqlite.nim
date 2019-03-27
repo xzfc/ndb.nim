@@ -280,3 +280,94 @@ suite "various":
     for row in db.instantRows(sql"SELECT * FROM t1"):
       if row[0, int64] == 3: break
     db.close()
+
+suite "Prepared statement finalization":
+
+  test "tryExec() finalizes the statement (invalid parameter list)":
+    let db = open(":memory:", "", "", "")
+    db.exec sql"CREATE TABLE t1 (id INTEGER PRIMARY KEY)"
+    check: not db.tryExec(sql"INSERT INTO t1 VALUES (1)", 123)
+    # this throws if there are unfinalized statements!
+    db.close()
+
+  test "tryExec() finalizes the statement (execution failure)":
+    let db = open(":memory:", "", "", "")
+    # insertion will always fail
+    db.exec sql"CREATE TABLE t1 (id INTEGER PRIMARY KEY, CHECK (0))"
+    check: not db.tryExec(sql"INSERT INTO t1 VALUES (1)")
+    # this throws if there are unfinalized statements!
+    db.close()
+
+  test "exec() finalizes the statement (invalid parameter list)":
+    let db = open(":memory:", "", "", "")
+    db.exec sql"CREATE TABLE t1 (id INTEGER PRIMARY KEY)"
+    expect DbError: db.exec(sql"INSERT INTO t1 VALUES (1)", 123)
+    # this throws if there are unfinalized statements!
+    db.close()
+
+  test "exec() finalizes the statement (execution failure)":
+    let db = open(":memory:", "", "", "")
+    # insertion will always fail
+    db.exec sql"CREATE TABLE t1 (id INTEGER PRIMARY KEY, CHECK (0))"
+    expect DbError: db.exec(sql"INSERT INTO t1 VALUES (1)")
+    # this throws if there are unfinalized statements!
+    db.close()
+
+  test "rows() finalizes the statement (invalid parameter list)":
+    let db = open(":memory:", "", "", "")
+    expect DbError:
+      for row in db.rows(sql"SELECT 1", 123): discard
+    # this throws if there are unfinalized statements!
+    db.close()
+
+  # TODO: find a way to trigger execution failure for `rows()`.
+
+  test "instantRows() finalizes the statement (invalid parameter list)":
+    let db = open(":memory:", "", "", "")
+    expect DbError:
+      for row in db.instantRows(sql"SELECT 1", 123): discard
+    # this throws if there are unfinalized statements!
+    db.close()
+
+  # TODO: find a way to trigger execution failure for `instantRows()`.
+
+  test "instantRows() (with columns) finalizes the statement (invalid parameter list)":
+    let db = open(":memory:", "", "", "")
+    expect DbError:
+      var columns: DbColumns
+      for row in db.instantRows(columns, sql"SELECT 1", 123): discard
+    # this throws if there are unfinalized statements!
+    db.close()
+
+  # TODO: find a way to trigger execution failure for `instantRows()` with columns.
+
+  test "tryInsertID() finalizes the statement (invalid parameter list)":
+    let db = open(":memory:", "", "", "")
+    db.exec sql"CREATE TABLE t1 (id INTEGER PRIMARY KEY)"
+    check: db.tryInsertID(sql"INSERT INTO t1 VALUES (1)", 123) == -1
+    # this throws if there are unfinalized statements!
+    db.close()
+
+  test "tryInsertID() finalizes the statement (execution failure)":
+    let db = open(":memory:", "", "", "")
+    # insertion will always fail
+    db.exec sql"CREATE TABLE t1 (id INTEGER PRIMARY KEY, CHECK (0))"
+    check: db.tryInsertID(sql"INSERT INTO t1 VALUES (1)") == -1
+    # this throws if there are unfinalized statements!
+    db.close()
+
+    
+  test "insertID() finalizes the statement (invalid parameter list)":
+    let db = open(":memory:", "", "", "")
+    db.exec sql"CREATE TABLE t1 (id INTEGER PRIMARY KEY)"
+    expect DbError: discard db.insertID(sql"INSERT INTO t1 VALUES (1)", 123)
+    # this throws if there are unfinalized statements!
+    db.close()
+
+  test "insertID() finalizes the statement (execution failure)":
+    let db = open(":memory:", "", "", "")
+    # insertion will always fail
+    db.exec sql"CREATE TABLE t1 (id INTEGER PRIMARY KEY, CHECK (0))"
+    expect DbError: discard db.insertID(sql"INSERT INTO t1 VALUES (1)")
+    # this throws if there are unfinalized statements!
+    db.close()
