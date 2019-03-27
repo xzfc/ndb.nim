@@ -1,4 +1,4 @@
-{ v ? "0.19.0" }:
+{ v ? "0.19.4" }:
 with import <nixpkgs> {};
 let
   nim-common = version: sha256:
@@ -89,6 +89,7 @@ let
     };
   nim-versions = {
     "git"    = nim-git;
+    "0.19.4" = nim-common "0.19.4" "0k59dhfsg5wnkc3nxg5a336pjd9jnfxabns63bl9n28iwdg16hgl";
     "0.19.0" = nim-common "0.19.0" "0biwvw1gividp5lkf0daq1wp9v6ms4xy6dkf5zj0sn9w4m3n76d1";
     "0.18.0" = nim-common "0.18.0" "1l1vdygbgs5fdh2ffdjapcp90p8f6cbsw4hivndgm3gh6pdlmis5";
     "0.17.0" = nim-common "0.17.0" "16vsmk4rqnkg9lc9h9jk62ps0x778cdqg6qrs3k6fv2g73cqvq9n";
