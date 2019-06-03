@@ -60,17 +60,6 @@ let db = open("example.db", "", "", "")
 db.close()
 ```
 
-Technical references:
-
-database   | function
----------- | --------
-SQLite     | [open](https://xzfc.github.io/ndb.nim/v0.19.4/sqlite.html#open%2Cstring%2Cstring%2Cstring%2Cstring)
-SQLite     | [close](https://xzfc.github.io/ndb.nim/v0.19.4/sqlite.html#close%2CDbConn)
-PostgreSQL | open
-PostgreSQL | open
-MariaDB    | open
-MariaDB    | close
-
 #### SIDEBAR: BEHIND THE SCENES
 
 > This library does not access the databases directly. Instead, they wrap some common C libraries already written and officially supported for the database. Links:
@@ -109,7 +98,6 @@ An example:
 
 ```
 import ndb / sqlite
-
 let db = open("example.db", "", "", "")
 
 let creation_query = sql"""
@@ -133,37 +121,36 @@ So, to illustrate this with an example:
 
 ```nim
 import ndb / sqlite
-
 let db = open("example.db", "", "", "")
 
-var cheap_vegs = db.rows(sql"SELECT name, qty WHERE price < 1.00 ORDER BY name")
+var cheap_vegs = db.rows(sql"SELECT name, qty FROM MyGarden WHERE price < 1.00 ORDER BY name")
 ```
 
-We are going to assume that there are three matching records. So, the variable `cheap_vegs` is now pointing to the first record as an iterator. For example:
+We are going to assume that there are three matching records. So, the variable `cheap_vegs` is now pointing to the first record as an iterator. For example, it might be:
 
-ptr |name       |qty
-----|-----------|---
-*   |carrot     | 20
--   |green bean |100
--   |squash     | 32
+ptr  |name       |qty
+-----|-----------|---
+here |carrot     | 20
+.    |green bean |100
+.    |squash     | 32
 
-Every time a new record is pulled from from `cheap_vegs` the iterator advances to the next.
+The variable `cheap_vegs` can be used to get a record.
 
 ```nim
 var first_veg = cheap_vegs
 echo $first_veg[0] & ": " & $first_veg[1]  # prints "carrot: 20"
 ```
 
-Notice that this is a sequence, so the columns are referenced by number.
+Notice that the record `first_veg` is a sequence, so the columns are referenced by number.
 And, now the `cheap_vegs` iterator has moved to the next row.
 
-ptr |name       |qty
-----|-----------|---
--   |carrot     | 20
-*   |green bean |100
--   |squash     | 32
+ptr  |name       |qty
+-----|-----------|---
+.    |carrot     | 20
+here |green bean |100
+.    |squash     | 32
 
-Since `first_veg` contains the record, we can also access the column's data based on what type of column it is. In this case, the first column is a string, so use `.s`, and the second column is an integer, so use `.i`.
+Since `first_veg` contains the record, we can also access the column's data based on what type of column it is. In this case, the first column is a string, so use `.s`. The second column is an integer, so use `.i`.
 
 ```nim
 if first_veg[1].isNotNull:
@@ -179,7 +166,7 @@ for v in cheap_vegs:
   echo $v[0] & ": " & $v[1]
 ```
 
-which prints
+which prints the remaining items
 
 ```
 green bean: 100
@@ -188,16 +175,87 @@ squash: 32
 
 ### HANDLING NO RESULTS
 
-If the query had return no results...
+If the query has no rows to return (no matches found), then the iterator points to no results. Simply check the iterator for the `finished` condition:
+
+```
+import ndb / sqlite
+let db = open("example.db", "", "", "")
+
+var super_expensive = db.rows(sql"SELECT name, qty FROM MyGarden WHERE price > 1000.00")
+
+if finished(super_expensive):
+    echo "nothing super-expensive found"
+else:
+    echo "1 or more super-expensive found"
+```
 
 ### GETTING FEWER (OR ONE)
 
-You an get just the first matching record by ...
+You can set a limit on the results by either passing that limit in the SQL. Or you can add an optional parameter to your `rows` call.
 
-### SIDEBAR: UNDERSTANDING TYPES
+```
+import ndb / sqlite
+let db = open("example.db", "", "", "")
+
+var some = db.rows(sql"SELECT name, qty FROM MyGarden LIMIT 2")
+# or you can do:
+some = db.rows(sql"SELECT name, qty FROM MyGarden", 2)
+```
+If you are only wanting ONE result, you can also use the `getRow` function to get the *first* row found. The function returns an `Option[Row]`
+
+```
+import ndb / sqlite
+
+let db = open("example.db", "", "", "")
+
+var cucumber = db.rows(sql"SELECT qty FROM MyGarden WHERE name='cucumber")
+
+if cucumber.isNone:
+  echo "No cucumber found."
+else:
+  echo "cucumber: " & $cucumber.get()  # prints "cucumber: 22"
+
+db.close()
+```
+
+### UNDERSTANDING TYPES
+
+[TODO]
 
 ## CREATING RECORDS
 
+You can, of course, simply create new records in a table by issueing a `exec` query to do so:
+
+ ```nim
+db.exec(sql"""
+    INSERT INTO MyGarden (id, name, qty, price) VALUES (1, "carrot", 20, 0.33)
+""")
+```
+
+Or you can use `exec`'s parameter substitution:
+
+```nim
+db.exec(sql"""
+    INSERT INTO MyGarden (id, name, qty, price) VALUES (?, ?, ?, ?)
+""", 2, "cucumber", 22, 1632.2)
+```
+
+But `ndb` also supports a special function called `tryInsertID` which not only inserts the row but also create a new unique number for a matching `id` column and returns the value of that new id (`int64`).
+
+```nim
+var new_id = db.insertID(sql"""
+    INSERT INTO MyGarden (name, qty, price) VALUES (?, ?, ?)
+""", "green bean", 100, 0.92)
+```
+
+If an error is found during the insertion, the returned number is -1. If you are wanting to do your own error catching, then use the alternate `insertID` function.
+
 ## UPDATING RECORDS
 
+[TODO]
+
+`execAffectedRows`
+
 ## DELETING RECORDS
+
+[TODO]
