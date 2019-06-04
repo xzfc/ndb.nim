@@ -252,10 +252,32 @@ If an error is found during the insertion, the returned number is -1. If you are
 
 ## UPDATING RECORDS
 
-[TODO]
+Updates are best done using the `execAffectedRows` function. You pass the SQL UPDATE query in a manner similar to the exec function, but this function returns the number of rows that it affected.
 
-`execAffectedRows`
+```nim
+var count = db.execAffectedRows(sql"""
+    UPDATE MyGarden SET price = 0.90 WHERE name=?
+""", "green bean")
+
+echo $count  # prints "1"
+```
+
+If no rows are updates, you will get a zero (0) returned.
 
 ## DELETING RECORDS
+
+Deletions are best done using the `execAffectedRows` function. You pass the SQL DELETE query in a manner similar to the exec function, but this function returns the number of rows that it affected.
+
+```nim
+var count = db.execAffectedRows(sql"""
+    DELETE FROM MyGarden WHERE name=?
+""", "carrot")
+
+echo $count  # prints "1"
+```
+
+If no rows are deleted, you would get a zero (0) returned.
+
+## CATCHING ERRORS
 
 [TODO]
