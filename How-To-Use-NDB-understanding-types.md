@@ -1,16 +1,14 @@
-# HOW-TO-USE-NDB
-
 ## EXTRA: UNDERSTANDING TYPES
 
 The following are the types currently supported by `ndb`:
 
-| function    | nim type  | SQLite  | PostgreSQL  | MariaDB (mysql) | LEGACY     | refs |
+| kind        | nim type  | SQLite  | PostgreSQL  | MariaDB (mysql) | LEGACY     | refs |
 |-------------|-----------|---------|-------------|-----------------|------------|-----------------------------------------------------------------------|
 | dbString    | string    | STRING  | TEXT        | TEXT            | dvkString  | |
 | dbInt       | int64     | INT     | INT         | INT             | dvkInt     | |
 | dbFloat     | float     | DECIMAL | NUMERIC     | DECIMAL         | dvkFloat   | |
 | dbBool      | bool      | INT     | BOOL        | BOOL            | dvkBool    | [SQLite bool](https://www.sqlite.org/datatype3.html#boolean_datatype) |
-| dbBlob      | (n/a)     | BLOB    | x           | BLOB            | dvkBlob    | }
+| dbBlob      | (n/a)     | BLOB    | x           | BLOB            | dvkBlob    | |
 | dbNull      | (n/a)     | NULL    | NULL        | NULL            | dvkNull    | |
 | dbDatetime  | timestamp | INT     | TIMESTAMP   | TIMESTAMP       |            | [nim times std lib](https://nim-lang.org/docs/times.html) |
 | dbTimestamp | timestamp | INT     | TIMESTAMP   | TIMESTAMP       |            | |
@@ -19,4 +17,8 @@ The following are the types currently supported by `ndb`:
 
 
 ### BACK TO DOC
-[return to main document](How-To-Use-NDB.md)
+
+[return to _creating records_)](How-To-Use-NDB.md#creating-records)
+
+[return to _reading records_](How-To-Use-NDB.md#reading-records)
+

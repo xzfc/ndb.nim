@@ -102,7 +102,7 @@ var new_id = db.insertID("""
 """, "green bean", 100, 0.92)
 ```
 
-If an error is found during the insertion, the returned number is -1. If you are wanting to do your own error catching, then use the alternate `insertID` function.
+If an error is found during the insertion, the returned number is -1. If you are wanting to do your own error catching, then use the alternate `insertID` function. See [CATCHING ERRORS] .
 
 **EXTRA:** [Understanding Types](How-To-Use-NDB-understanding-types.md)
 
@@ -121,11 +121,11 @@ var cheap_vegs = db.rows("SELECT name, qty FROM MyGarden WHERE price < 1.00 ORDE
 
 We are going to assume that there are three matching records. So, the variable `cheap_vegs` is now pointing to the first record as an iterator. For example, it might be:
 
-ptr  |name       |qty
------|-----------|---
-here |carrot     | 20
-.    |green bean |100
-.    |squash     | 32
+|ptr  |name       |qty
+|-----|-----------|---
+|*    |carrot     | 20
+|     |green bean |100
+|     |squash     | 32
 
 Now the variable `cheap_vegs` can be called to get a record.
 
@@ -137,11 +137,11 @@ echo $first_veg[0] & ": " & $first_veg[1]  # prints "carrot: 20"
 Notice that the record `first_veg` is a sequence, so the columns are referenced by number.
 And, now the `cheap_vegs` iterator has moved to the next row.
 
-ptr  |name       |qty
------|-----------|---
-.    |carrot     | 20
-here |green bean |100
-.    |squash     | 32
+|ptr  |name       |qty
+|-----|-----------|---
+|     |carrot     | 20
+|*    |green bean |100
+|     |squash     | 32
 
 Since `first_veg` contains the record, we can also access the column's data based on what type of column it is. In this case, the first column is a string, so use `.s`. The second column is an integer, so use `.i`.
 
@@ -164,7 +164,7 @@ green bean: 100
 squash: 32
 ```
 
-### HANDLING NO RESULTS
+#### READING RECORDS: HANDLING NO RESULTS
 
 If the query has no rows to return (no matches found), then the iterator points to no results. Simply check the iterator for the `finished` condition:
 
@@ -180,7 +180,7 @@ else:
     echo "1 or more super-expensive found"
 ```
 
-### GETTING FEWER (OR ONE)
+#### READING RECORDS: GETTING FEWER (OR ONE)
 
 You can set a limit on the results by either passing that limit in the SQL. Or you can add an optional parameter to your `rows` call.
 
@@ -242,7 +242,7 @@ If no rows are deleted, you would get a zero (0) returned.
 
 ## CATCHING ERRORS
 
-[TODO]
+TODO
 
 ## [NOTES ABOUT THIS DOC]
 
@@ -256,4 +256,5 @@ This doc is written with the presumption that the notes marked here are implemen
   - embrace the "kinds" from db_common (do the migration)
   - All of the variants will uniquely interpret all of the types. If a type is specifically not supported, a compile-time error (rather than run-time) is generated. However, I don't think this will ever be needed. If nothing else, a type can be a string conversion.
   - nim can't do decimals. As such, make sure that `DECIMAL` columns can be exported as strings to avoid the faulty `float` conversion.
+* Add ref links to each introduction to a new function or type.
 

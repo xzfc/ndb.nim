@@ -1,5 +1,3 @@
-# HOW-TO-USE-NDB
-
 ## EXTRA: CONNECTING TO MULTIPLE DATABASES
 
 It is possible to connect to multiple databases, even databases of different kinds. Simply import libraries with aliases to prevent name collision. You can also directly import a "db_common" library to use the shared database types between both libraries.
@@ -21,4 +19,4 @@ pdb.close()
 ```
 
 ### BACK TO DOC
-[return to main document](How-To-Use-NDB.md)
+[return to main document](How-To-Use-NDB.md#connecting)

@@ -1,5 +1,3 @@
-# HOW-TO-USE-NDB
-
 ## EXTRA: BEHIND THE SCENES
 
 This library does not access the databases directly. Instead, they wrap some common C libraries already written and officially supported for the database. Links:
@@ -9,4 +7,4 @@ This library does not access the databases directly. Instead, they wrap some com
 * MySQL: [libmysqlclient](https://dev.mysql.com/doc/refman/5.7/en/c-api.html) (verify ??)
 
 ### BACK TO DOC
-[return to main document](How-To-Use-NDB.md)
+[return to main document](How-To-Use-NDB.md#connecting)
