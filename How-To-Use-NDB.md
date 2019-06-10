@@ -3,8 +3,8 @@
 The `ndb` library provides a general means of using SQL relational databases in Nim. Specifically, it supports:
 
 * [SQLite](https://sqlite.org/index.html)
-* [PostgreSQL](https://www.postgresql.org/) (in progress)
-* [MySQL](https://www.oracle.com/mysql/) / [MariaDB](https://mariadb.org/) (in the future)
+* [PostgreSQL](https://www.postgresql.org/)
+* [MySQL](https://www.oracle.com/mysql/) / [MariaDB](https://mariadb.org/)
 
 This document will take through a tour of using `ndb` and it's features. This document assumes you already understand the SQL language. If you are not familiar with SQL, I recommend visiting [this free CodeAcademy course](https://www.codecademy.com/learn/learn-sql) or searching for the many other resources online for learning SQL first.
 
@@ -18,13 +18,13 @@ For SQLite:
 import ndb / sqlite
 ```
 
-For PostgreSQL (not working yet):
+For PostgreSQL:
 
 ```nim
 import ndb / postgresql
 ```
 
-For MySQL or MariaDB (not working yet):
+For MySQL or MariaDB:
 
 ```nim
 import ndb / mariadb
@@ -32,7 +32,7 @@ import ndb / mariadb
 
 The remaining examples in this document assume you are working SQLite, but the other database types should behave mostly the same.
 
-Then connect to the database using the `open` function, assigned the result to a variable to hold the connection. And later close it when finished using the 'close' function.
+Connect to the database using the `open` function and assign the result to a variable to hold the connection. And, later close it using the 'close' function.
 
 ```nim
 import ndb / sqlite
@@ -50,13 +50,13 @@ db.close()
 
 ## MAKING TABLES
 
-There are not specific functions for creating tables in `ndb`, instead you will simply rely on sending direct SQL statements to do it. That is done using the `exec` function.
+There are no specific functions for making new tables in `ndb`, instead you will simply rely on sending direct SQL statements to do it. That is done using the `exec` function.
 
-This function, `exec` is fairly powerful and can also do parameter substitution. We will see more of that the READING RECORDS section below.
+This function, `exec` is fairly powerful and can also do parameter substitution. We will see more of that the CREATING RECORDS section below.
 
-An example:
+An example of making a new table:
 
-```
+```nim
 import ndb / sqlite
 let db = open("example.db", "", "", "")
 
@@ -77,9 +77,12 @@ db.close()
 
 You can, of course, simply create new records in a table by issueing a `exec` query to do so:
 
- ```nim
+```nim
 db.exec("""
     INSERT INTO MyGarden (id, name, qty, price) VALUES (1, "carrot", 20, 0.33)
+""")
+db.exec("""
+    INSERT INTO MyGarden (id, name, qty, price) VALUES (2, "squash", 32, 0.5)
 """)
 ```
 
@@ -88,7 +91,7 @@ Or you can use `exec`'s parameter substitution:
 ```nim
 db.exec("""
     INSERT INTO MyGarden (id, name, qty, price) VALUES (?, ?, ?, ?)
-""", 2, "cucumber", 22, 1632.2)
+""", 3, "cucumber", 22, 1632.2)
 ```
 
 But `ndb` also supports a special function called `tryInsertID` which not only inserts the row but also create a new unique number for a matching `id` column and returns the value of that new id (`int64`).
@@ -124,10 +127,10 @@ here |carrot     | 20
 .    |green bean |100
 .    |squash     | 32
 
-The variable `cheap_vegs` can be used to get a record.
+Now the variable `cheap_vegs` can be called to get a record.
 
 ```nim
-var first_veg = cheap_vegs
+var first_veg = cheap_vegs()
 echo $first_veg[0] & ": " & $first_veg[1]  # prints "carrot: 20"
 ```
 
@@ -165,7 +168,7 @@ squash: 32
 
 If the query has no rows to return (no matches found), then the iterator points to no results. Simply check the iterator for the `finished` condition:
 
-```
+```nim
 import ndb / sqlite
 let db = open("example.db", "", "", "")
 
@@ -181,7 +184,7 @@ else:
 
 You can set a limit on the results by either passing that limit in the SQL. Or you can add an optional parameter to your `rows` call.
 
-```
+```nim
 import ndb / sqlite
 let db = open("example.db", "", "", "")
 
@@ -189,9 +192,10 @@ var some = db.rows("SELECT name, qty FROM MyGarden LIMIT 2")
 # or you can do:
 some = db.rows("SELECT name, qty FROM MyGarden", 2)
 ```
-If you are only wanting ONE result, you can also use the `getRow` function to get the *first* row found. The function returns an `Option[Row]`
 
-```
+If you are only wanting _one_ result, you can also use the `getRow` function to get the *first* row found. The function returns an `Option[Row]`
+
+```nim
 import ndb / sqlite
 
 let db = open("example.db", "", "", "")
@@ -205,6 +209,7 @@ else:
 
 db.close()
 ```
+
 **EXTRA:** [Understanding Types](How-To-Use-NDB-understanding-types.md)
 
 ## UPDATING RECORDS

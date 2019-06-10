@@ -1,8 +1,8 @@
-#HOW-TO-USE-NDB
+# HOW-TO-USE-NDB
 
 ## EXTRA: CONNECTING TO MULTIPLE DATABASES
 
-It is possible to connect to multiple databases, even databases of different kinds. Simply import both library types with aliases to prevent name collision. You can also directly import a "dbtypes" library to use the shared database types between libraries.
+It is possible to connect to multiple databases, even databases of different kinds. Simply import libraries with aliases to prevent name collision. You can also directly import a "db_common" library to use the shared database types between both libraries.
 
 For example:
 
