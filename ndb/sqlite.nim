@@ -205,6 +205,11 @@ proc dbValue*(v: DbNull): DbValue =
   ## Wrap NULL value.
   DbValue(kind: dvkNull)
 
+template `?`*(v: typed): DbValue =
+  ## Shortcut for ``dbValue``.
+  dbValue(v)
+
+
 when NimMinor >= 19:
   proc dbValue*(v: type(nil)): DbValue =
     ## Wrap NULL value.

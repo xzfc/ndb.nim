@@ -25,28 +25,28 @@ suite "Examples":
     db.close()
   test "Larger example":
     let db = open(":memory:", "", "", "")
-  
+
     db.exec(sql"Drop table if exists myTestTbl")
     db.exec(sql("""create table myTestTbl (
          Id    INTEGER PRIMARY KEY,
          Name  VARCHAR(50) NOT NULL,
          i     INT(11),
          f     DECIMAL(18,10))"""))
-  
+
     db.exec(sql"BEGIN")
     for i in 1..1000:
       db.exec(sql"INSERT INTO myTestTbl (name,i,f) VALUES (?,?,?)",
             "Item#" & $i, i, sqrt(i.float))
     db.exec(sql"COMMIT")
-  
+
     for x in db.rows(sql"select * from myTestTbl"):
       # echo x
       discard x
-  
+
     let id = db.tryInsertId(sql"INSERT INTO myTestTbl (name,i,f) VALUES (?,?,?)",
           "Item#1001", 1001, sqrt(1001.0))
     discard db.getValue(string, sql"SELECT name FROM myTestTbl WHERE id=?", id).unsafeGet
-  
+
     db.close()
   test "readme.md":
     #import ndb/sqlite
@@ -356,7 +356,7 @@ suite "Prepared statement finalization":
     # this throws if there are unfinalized statements!
     db.close()
 
-    
+
   test "insertID() finalizes the statement (invalid parameter list)":
     let db = open(":memory:", "", "", "")
     db.exec sql"CREATE TABLE t1 (id INTEGER PRIMARY KEY)"
@@ -370,4 +370,46 @@ suite "Prepared statement finalization":
     db.exec sql"CREATE TABLE t1 (id INTEGER PRIMARY KEY, CHECK (0))"
     expect DbError: discard db.insertID(sql"INSERT INTO t1 VALUES (1)")
     # this throws if there are unfinalized statements!
+    db.close()
+
+suite "sugar":
+  test "one":
+    let db = open(":memory:", "", "", "")
+    let row = db.getRow(sql"SELECT 'a'")
+    check row == some(@[?"a"])
+    db.close()
+
+  test "rows()":
+    let db = open(":memory:", "", "", "")
+    db.exec sql"""
+      CREATE TABLE t1 (
+          Id    INTEGER PRIMARY KEY,
+          S     TEXT
+      )
+    """
+    db.exec sql"INSERT INTO t1 VALUES(?, ?)", 1, "foo"
+    db.exec sql"INSERT INTO t1 VALUES(?, ?)", 2, "bar"
+    var n = 0
+    for row in db.rows(sql"SELECT * FROM t1"):
+      case n
+      of 0:
+        check row[0] == ?1
+        check row[1] == ?"foo"
+      of 1:
+        check row[0] == ?2
+        check row[1] == ?"bar"
+      else:
+        check false
+      check row.len == 2
+      n.inc
+    check n == 2
+    db.close()
+
+  test "rows() break":
+    let db = open(":memory:", "", "", "")
+    db.exec sql"CREATE TABLE t1 (id INTEGER PRIMARY KEY)"
+    db.exec sql"INSERT INTO t1 VALUES(1),(2),(3),(4),(5)"
+    var n = 0
+    for row in db.rows(sql"SELECT * FROM t1"):
+      if row[0] == ?3: break
     db.close()
