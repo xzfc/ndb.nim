@@ -205,7 +205,7 @@ proc dbValue*(v: DbNull): DbValue =
   ## Wrap NULL value.
   DbValue(kind: dvkNull)
 
-template `$$`*(v: typed): DbValue =
+template `!`*(v: typed): DbValue =
   ## Shortcut for ``dbValue``.
   dbValue(v)
 
