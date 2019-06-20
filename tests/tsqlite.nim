@@ -376,7 +376,7 @@ suite "sugar":
   test "one":
     let db = open(":memory:", "", "", "")
     let row = db.getRow(sql"SELECT 'a'")
-    check row == some(@[!"a"])
+    check row == some(@[?"a"])
     db.close()
 
   test "rows()":
@@ -393,11 +393,11 @@ suite "sugar":
     for row in db.rows(sql"SELECT * FROM t1"):
       case n
       of 0:
-        check row[0] == !1
-        check row[1] == !"foo"
+        check row[0] == ?1
+        check row[1] == ?"foo"
       of 1:
-        check row[0] == !2
-        check row[1] == !"bar"
+        check row[0] == ?2
+        check row[1] == ?"bar"
       else:
         check false
       check row.len == 2
@@ -411,5 +411,5 @@ suite "sugar":
     db.exec sql"INSERT INTO t1 VALUES(1),(2),(3),(4),(5)"
     var n = 0
     for row in db.rows(sql"SELECT * FROM t1"):
-      if row[0] == !3: break
+      if row[0] == ?3: break
     db.close()
