@@ -1,4 +1,4 @@
-version       = "0.19.4"
+version       = "0.19.5"
 author        = "Albert Safin <xzfcpw@gmail.com>"
 description   = "A db_sqlite fork with a proper typing"
 license       = "MIT"
