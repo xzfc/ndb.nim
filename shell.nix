@@ -1,4 +1,4 @@
-{ v ? "0.19.4" }:
+{ v ? "0.20.2" }:
 with import <nixpkgs> {};
 let
   nim-common = version: sha256:
@@ -12,6 +12,7 @@ let
 
       doCheck = false;
       postPatch = '' rm -rf tests '';
+      prePatch = '' : '';
       buildPhase = ''export LD=$CC XDG_CACHE_HOME=$PWD/.cache;'' + attrs.buildPhase;
     });
   nim-git =
@@ -89,6 +90,8 @@ let
     };
   nim-versions = {
     "git"    = nim-git;
+    "0.20.2" = nim-common "0.20.2" "0pibil10x0c181kw705phlwk8bn8dy5ghqd9h9fm6i9afrz5ryp1";
+    "0.19.6" = nim-common "0.19.6" "0a9sgvb370iv4fwkqha8x4x02zngb505vlfn9x6l74lks9c0r7x0";
     "0.19.4" = nim-common "0.19.4" "0k59dhfsg5wnkc3nxg5a336pjd9jnfxabns63bl9n28iwdg16hgl";
     "0.19.0" = nim-common "0.19.0" "0biwvw1gividp5lkf0daq1wp9v6ms4xy6dkf5zj0sn9w4m3n76d1";
     "0.18.0" = nim-common "0.18.0" "1l1vdygbgs5fdh2ffdjapcp90p8f6cbsw4hivndgm3gh6pdlmis5";
