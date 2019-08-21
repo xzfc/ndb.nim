@@ -1,3 +1,5 @@
+`v0.19.5` [src](https://github.com/xzfc/ndb.nim/tree/v0.19.5) [doc](v0.19.5/sqlite.html)
+
 `v0.19.4` [src](https://github.com/xzfc/ndb.nim/tree/v0.19.4) [doc](v0.19.4/sqlite.html)
 
 `v0.19.3` [src](https://github.com/xzfc/ndb.nim/tree/v0.19.3) [doc](v0.19.3/sqlite.html)
