@@ -18,25 +18,25 @@ let
   nim-git =
     stdenv.mkDerivation rec {
       name = "nim-${version}";
-      version = "0.19.0-git";
+      version = "0.20.2-git";
     
       src = fetchFromGitHub {
         owner = "nim-lang";
         repo = "Nim";
-        rev = "2bc016b1720da62e6fc6016e38705cde3b797728";
-        sha256 = "0a310y54pcv4gnlb6nh81dxgzzzd8ln3hdb0y1car7sh1ld26pdc";
+        rev = "f9600b7207e45573ee066ec7c9145df113ff5b99";
+        sha256 = "1vx89j4rydw6gj9gcwxpih18kqaax9fcgfvxi7v9q554i6miwg55";
       };
       src-csources = fetchFromGitHub {
         owner = "nim-lang";
         repo = "csources";
-        rev = "v0.19.0";
-        sha256 = "00mzzhnp1myjbn3rw8qfnz593phn8vmcffw2lf1r2ncppck5jbpj";
+        rev = "v0.20.0";
+        sha256 = "0i6vsfy1sgapx43n226q8m0pvn159sw2mhp50zm3hhb9zfijanis";
       };
       src-nimble = fetchFromGitHub {
         owner = "nim-lang";
         repo = "nimble";
-        rev = "v0.9.0";
-        sha256 = "16aiav360p3fj7r044cb2hq59szx7igrx60r782dfr4cfhyc1p4s";
+        rev = "v0.10.2";
+        sha256 = "1l292d1z9a5wrc1i58znlpxbqvh69pr0qdv9zvhq29lr9vnkx1a2";
       };
     
       enableParallelBuilding = true;
@@ -46,6 +46,7 @@ let
         "-lpcre"
         "-lreadline"
         "-lgc"
+        "-lsqlite3"
       ];
     
       nativeBuildInputs = [
@@ -53,7 +54,7 @@ let
       ];
     
       buildInputs = [
-        openssl pcre readline boehmgc sfml
+        openssl pcre readline boehmgc sfml sqlite
       ];
     
       phases = [ "unpackPhase" "buildPhase" "installPhase" ];
