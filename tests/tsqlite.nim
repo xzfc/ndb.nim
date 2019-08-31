@@ -133,11 +133,20 @@ suite "Bind value of type":
     let rows = db.getRow(sql "SELECT typeof(?)", DbBlob "").unsafeGet
     check rows == @[DbValue(kind: dvkString, s: "blob")]
     db.close()
-  test "null":
+  test "null (DbNull)":
     let db = open(":memory:", "", "", "")
     let rows = db.getRow(sql "SELECT typeof(?)", DbNull()).unsafeGet
     check rows == @[DbValue(kind: dvkString, s: "null")]
     db.close()
+  test "null (nil)":
+    when NimMinor <= 19:
+      # See dbValue(nil) doc
+      skip()
+    else:
+      let db = open(":memory:", "", "", "")
+      let rows = db.getRow(sql "SELECT typeof(?)", nil).unsafeGet
+      check rows == @[DbValue(kind: dvkString, s: "null")]
+      db.close()
 
 suite "getRow()":
   test "empty":

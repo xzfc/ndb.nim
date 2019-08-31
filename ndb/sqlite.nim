@@ -87,7 +87,7 @@ type
     dvkString ## SQLITE_TEXT, string
     dvkBlob   ## SQLITE_BLOB, BLOB
     dvkNull   ## SQLITE_NULL, NULL
-  DbValueTypes* = int64|float|string|DbBlob|DbNull ## \
+  DbValueTypes* = int64|float64|string|DbBlob|DbNull ## \
     ## Possible value types
   DbBlob* = distinct string ## SQLite BLOB value.
   DbNull* = object          ## SQLite NULL value.
@@ -97,7 +97,7 @@ type
     of dvkInt:
       i*: int64
     of dvkFloat:
-      f*: float
+      f*: float64
     of dvkString:
       s*: string
     of dvkBlob:
@@ -185,11 +185,11 @@ proc dbValue*(v: DbValue): DbValue =
   ## Return ``v`` as is.
   v
 
-proc dbValue*(v: int|int32|int64|uint): DbValue =
+proc dbValue*(v: int|int8|int16|int32|int64|uint8|uint16|uint32): DbValue =
   ## Wrap integer value.
   DbValue(kind: dvkInt, i: v.int64)
 
-proc dbValue*(v: float): DbValue =
+proc dbValue*(v: float64): DbValue =
   ## Wrap float value.
   DbValue(kind: dvkFloat, f: v)
 
@@ -201,13 +201,9 @@ proc dbValue*(v: DbBlob): DbValue =
   ## Wrap BLOB value.
   DbValue(kind: dvkBlob, b: v)
 
-proc dbValue*(v: DbNull): DbValue =
+proc dbValue*(v: DbNull|type(nil)): DbValue =
   ## Wrap NULL value.
-  DbValue(kind: dvkNull)
-
-proc dbValue*(v: type(nil)): DbValue =
-  ## Wrap NULL value.
-  ## Caveat: doesn't compile on 0.19.0 release, see
+  ## Caveat: ``dbValue(nil)`` doesn't compile on Nim 0.19.x, see
   ## https://github.com/nim-lang/Nim/pull/9231.
   DbValue(kind: dvkNull)
 
@@ -325,7 +321,7 @@ proc newRow(L: int): Row =
 proc columnValue[T:DbValueTypes|DbValue](stmt: Pstmt, col: int32): T {.inline.} =
   when T is int64:
     stmt.column_int64(col)
-  elif T is float:
+  elif T is float64:
     stmt.column_double(col)
   elif T is string:
     $column_text(stmt, col)
@@ -343,7 +339,7 @@ proc columnValue[T:DbValueTypes|DbValue](stmt: Pstmt, col: int32): T {.inline.} 
     of SQLITE_INTEGER:
       DbValue(kind: dvkInt,    i: columnValue[int64](stmt, col))
     of SQLITE_FLOAT:
-      DbValue(kind: dvkFloat,  f: columnValue[float](stmt, col))
+      DbValue(kind: dvkFloat,  f: columnValue[float64](stmt, col))
     of SQLITE_TEXT:
       DbValue(kind: dvkString, s: columnValue[string](stmt, col))
     of SQLITE_BLOB:
