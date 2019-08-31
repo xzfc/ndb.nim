@@ -205,17 +205,15 @@ proc dbValue*(v: DbNull): DbValue =
   ## Wrap NULL value.
   DbValue(kind: dvkNull)
 
+proc dbValue*(v: type(nil)): DbValue =
+  ## Wrap NULL value.
+  ## Caveat: doesn't compile on 0.19.0 release, see
+  ## https://github.com/nim-lang/Nim/pull/9231.
+  DbValue(kind: dvkNull)
+
 template `?`*(v: typed): DbValue =
   ## Shortcut for ``dbValue``.
   dbValue(v)
-
-
-when NimMinor >= 19:
-  proc dbValue*(v: type(nil)): DbValue =
-    ## Wrap NULL value.
-    ## Caveat: doesn't compile on 0.19.0 release, see
-    ## https://github.com/nim-lang/Nim/pull/9231.
-    DbValue(kind: dvkNull)
 
 proc dbValue*[T](v: Option[T]): DbValue =
   ## Wrap value of type T or NULL.
@@ -414,19 +412,10 @@ iterator instantRows*(db: DbConn; columns: var DbColumns; query: SqlQuery,
       yield stmt
 
 # Specific
-when NimMinor >= 19:
-  proc `[]`*(row: InstantRow, col: int32, T: typedesc=string): T {.inline.} =
-    ## Return value for given column of the row.
-    ## ``T`` has to be one of ``DbValueTypes`` or ``DbValue``.
-    columnValue[T](row, col)
-else:
-  proc `[]`*(row: InstantRow, col: int32, T: typedesc): T {.inline.} =
-    ## Return value for given column of the row.
-    ## ``T`` has to be one of ``DbValueTypes`` or ``DbValue``.
-    columnValue[T](row, col)
-  proc `[]`*(row: InstantRow, col: int32): string {.inline.} =
-    ## Shortcut for ``row[col, string]``.
-    row[col, string]
+proc `[]`*(row: InstantRow, col: int32, T: typedesc=string): T {.inline.} =
+  ## Return value for given column of the row.
+  ## ``T`` has to be one of ``DbValueTypes`` or ``DbValue``.
+  columnValue[T](row, col)
 
 # Specific
 proc len*(row: InstantRow): int32 {.inline.} =

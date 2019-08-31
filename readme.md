@@ -1,7 +1,7 @@
 # ndb/sqlite
 
 A fork of [db_sqlite], Nim's standard library higher level SQLite database wrapper.
-Latest supported Nim version is 0.19.
+Latest supported Nim version is 0.20.
 [Documentation]( https://xzfc.github.io/ndb.nim )
 
 Warning: work in progress, API is a subject of change.
