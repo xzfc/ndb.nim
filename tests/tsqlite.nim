@@ -1,7 +1,6 @@
 import ndb/sqlite
 import math
 import options
-import sequtils
 import unittest
 
 suite "Examples":
@@ -62,6 +61,8 @@ suite "Examples":
     let blobValue = db.getAllRows(sql"SELECT * FROM BLOBS")[0][0].b
 
     db.close()
+
+    discard blobValue
 
 suite "Select value of type":
   test "integer":
@@ -161,7 +162,7 @@ suite "getRow()":
     db.close()
   test "two":
     let db = open(":memory:", "", "", "")
-    let row = db.getRow(sql"SELECT 'a' UNION SELECT 'b'")
+    let row = db.getRow(sql"SELECT 'a' UNION ALL SELECT 'b'")
     check row == some(@[dbValue "a"])
     db.close()
 
@@ -197,7 +198,7 @@ suite "various":
   test "multiple rows":
     let db = open(":memory:", "", "", "")
     let rows = db.getAllRows(sql """
-      SELECT 'a' UNION SELECT 'b' UNION SELECT 'c' UNION SELECT 'd'
+      SELECT 'a' UNION ALL SELECT 'b' UNION ALL SELECT 'c' UNION ALL SELECT 'd'
     """)
     check rows == @[
       @[DbValue(kind: dvkString, s: "a")],
@@ -210,7 +211,7 @@ suite "various":
   test "bind limit":
     let db = open(":memory:", "", "", "")
     let rows = db.getAllRows(sql """
-      SELECT 'a' UNION SELECT 'b' UNION SELECT 'c' UNION SELECT 'd' LIMIT ?
+      SELECT 'a' UNION ALL SELECT 'b' UNION ALL SELECT 'c' UNION ALL SELECT 'd' LIMIT ?
     """, 2)
     check rows == @[
       @[DbValue(kind: dvkString, s: "a")],
@@ -276,7 +277,6 @@ suite "various":
     let db = open(":memory:", "", "", "")
     db.exec sql"CREATE TABLE t1 (id INTEGER PRIMARY KEY)"
     db.exec sql"INSERT INTO t1 VALUES(1),(2),(3),(4),(5)"
-    var n = 0
     for row in db.rows(sql"SELECT * FROM t1"):
       if row[0] == dbValue 3: break
     db.close()
@@ -285,10 +285,24 @@ suite "various":
     let db = open(":memory:", "", "", "")
     db.exec sql"CREATE TABLE t1 (id INTEGER PRIMARY KEY)"
     db.exec sql"INSERT INTO t1 VALUES(1),(2),(3),(4),(5)"
-    var n = 0
     for row in db.instantRows(sql"SELECT * FROM t1"):
       if row[0, int64] == 3: break
     db.close()
+
+  test "nested rows()":
+    let db = open(":memory:", "", "", "")
+    var res = ""
+    for i in db.rows sql"SELECT 'a' UNION ALL SELECT 'b' UNION ALL SELECT 'c'":
+      res.add i[0].s
+      for j in db.rows sql"SELECT '1' UNION ALL SELECT '2' UNION ALL SELECT '3'":
+        res.add j[0].s
+    check res == "a123b123c123"
+
+  test "insertID()":
+    let db = open(":memory:", "", "", "")
+    db.exec sql"CREATE TABLE t1 (id SERIAL PRIMARY KEY, value TEXT)"
+    let id = db.insertID sql"INSERT INTO t1(value) VALUES ('a')"
+    check id == 1
 
 suite "Prepared statement finalization":
 
@@ -418,7 +432,6 @@ suite "sugar":
     let db = open(":memory:", "", "", "")
     db.exec sql"CREATE TABLE t1 (id INTEGER PRIMARY KEY)"
     db.exec sql"INSERT INTO t1 VALUES(1),(2),(3),(4),(5)"
-    var n = 0
     for row in db.rows(sql"SELECT * FROM t1"):
       if row[0] == ?3: break
     db.close()
