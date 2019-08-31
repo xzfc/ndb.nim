@@ -1,0 +1,53 @@
+SQLite	sqlite.html#sqlite_1	Module sqlite	
+Parameter substitution	sqlite.html#parameter-substitution	 Parameter substitution	
+Examples	sqlite.html#examples	 Examples	
+Opening a connection to a database	sqlite.html#examples-opening-a-connection-to-a-database	  Opening a connection to a database	
+Creating a table	sqlite.html#examples-creating-a-table	  Creating a table	
+Inserting data	sqlite.html#examples-inserting-data	  Inserting data	
+Larger example	sqlite.html#examples-larger-example	  Larger example	
+See also	sqlite.html#examples-see-also	  See also	
+dvkInt	sqlite.html#dvkInt	DbValueKind.dvkInt	
+dvkFloat	sqlite.html#dvkFloat	DbValueKind.dvkFloat	
+dvkString	sqlite.html#dvkString	DbValueKind.dvkString	
+dvkBlob	sqlite.html#dvkBlob	DbValueKind.dvkBlob	
+dvkNull	sqlite.html#dvkNull	DbValueKind.dvkNull	
+DbValueKind	sqlite.html#DbValueKind	sqlite: DbValueKind	
+DbValueTypes	sqlite.html#DbValueTypes	sqlite: DbValueTypes	
+DbBlob	sqlite.html#DbBlob	sqlite: DbBlob	
+DbNull	sqlite.html#DbNull	sqlite: DbNull	
+DbValue	sqlite.html#DbValue	sqlite: DbValue	
+DbConn	sqlite.html#DbConn	sqlite: DbConn	
+Row	sqlite.html#Row	sqlite: Row	
+InstantRow	sqlite.html#InstantRow	sqlite: InstantRow	
+`==`	sqlite.html#==,DbBlob,DbBlob	sqlite: `==`(a: DbBlob; b: DbBlob): bool	
+`==`	sqlite.html#==,DbValue,DbValue	sqlite: `==`(a: DbValue; b: DbValue): bool	
+dbError	sqlite.html#dbError,DbConn	sqlite: dbError(db: DbConn)	
+dbQuote	sqlite.html#dbQuote,string	sqlite: dbQuote(s: string): string	
+dbQuote	sqlite.html#dbQuote,DbBlob	sqlite: dbQuote(s: DbBlob): string	
+`$`	sqlite.html#$,DbValue	sqlite: `$`(v: DbValue): string	
+dbValue	sqlite.html#dbValue,DbValue	sqlite: dbValue(v: DbValue): DbValue	
+dbValue	sqlite.html#dbValue_2	sqlite: dbValue(v: int | int8 | int16 | int32 | int64 | uint8 | uint16 | uint32): DbValue	
+dbValue	sqlite.html#dbValue,float64	sqlite: dbValue(v: float64): DbValue	
+dbValue	sqlite.html#dbValue,string	sqlite: dbValue(v: string): DbValue	
+dbValue	sqlite.html#dbValue,DbBlob	sqlite: dbValue(v: DbBlob): DbValue	
+dbValue	sqlite.html#dbValue_3	sqlite: dbValue(v: DbNull | type(nil)): DbValue	
+`?`	sqlite.html#?.t,typed	sqlite: `?`(v: typed): DbValue	
+dbValue	sqlite.html#dbValue,Option[T]	sqlite: dbValue[T](v: Option[T]): DbValue	
+tryExec	sqlite.html#tryExec,DbConn,SqlQuery,varargs[DbValue,dbValue]	sqlite: tryExec(db: DbConn; query: SqlQuery; args: varargs[DbValue, dbValue]): bool	
+exec	sqlite.html#exec,DbConn,SqlQuery,varargs[DbValue,dbValue]	sqlite: exec(db: DbConn; query: SqlQuery; args: varargs[DbValue, dbValue])	
+rows	sqlite.html#rows.i,DbConn,SqlQuery,varargs[DbValue,dbValue]	sqlite: rows(db: DbConn; query: SqlQuery; args: varargs[DbValue, dbValue]): Row	
+instantRows	sqlite.html#instantRows.i,DbConn,SqlQuery,varargs[DbValue,dbValue]	sqlite: instantRows(db: DbConn; query: SqlQuery; args: varargs[DbValue, dbValue]): InstantRow	
+instantRows	sqlite.html#instantRows.i,DbConn,seq[DbColumn],SqlQuery,varargs[DbValue,dbValue]	sqlite: instantRows(db: DbConn; columns: var DbColumns; query: SqlQuery;\n            args: varargs[DbValue, dbValue]): InstantRow	
+`[]`	sqlite.html#[],InstantRow,int32,typedesc	sqlite: `[]`(row: InstantRow; col: int32; T: typedesc = string): T:type	
+len	sqlite.html#len,InstantRow	sqlite: len(row: InstantRow): int32	
+getRow	sqlite.html#getRow,DbConn,SqlQuery,varargs[DbValue,dbValue]	sqlite: getRow(db: DbConn; query: SqlQuery; args: varargs[DbValue, dbValue]): Option[Row]	
+getAllRows	sqlite.html#getAllRows,DbConn,SqlQuery,varargs[DbValue,dbValue]	sqlite: getAllRows(db: DbConn; query: SqlQuery; args: varargs[DbValue, dbValue]): seq[Row]	
+fastRows	sqlite.html#fastRows.i,DbConn,SqlQuery,varargs[DbValue,dbValue]	sqlite: fastRows(db: DbConn; query: SqlQuery; args: varargs[DbValue, dbValue]): Row	
+getValue	sqlite.html#getValue,DbConn,SqlQuery,varargs[DbValue,dbValue]	sqlite: getValue[T: DbValueTypes | DbValue](db: DbConn; query: SqlQuery;\n                                 args: varargs[DbValue, dbValue]): Option[T]	
+getValue	sqlite.html#getValue,DbConn,typedesc,SqlQuery,varargs[DbValue,dbValue]	sqlite: getValue(db: DbConn; T: typedesc; query: SqlQuery; args: varargs[DbValue, dbValue]): Option[\n    T]	
+tryInsertID	sqlite.html#tryInsertID,DbConn,SqlQuery,varargs[DbValue,dbValue]	sqlite: tryInsertID(db: DbConn; query: SqlQuery; args: varargs[DbValue, dbValue]): int64	
+insertID	sqlite.html#insertID,DbConn,SqlQuery,varargs[DbValue,dbValue]	sqlite: insertID(db: DbConn; query: SqlQuery; args: varargs[DbValue, dbValue]): int64	
+execAffectedRows	sqlite.html#execAffectedRows,DbConn,SqlQuery,varargs[DbValue,dbValue]	sqlite: execAffectedRows(db: DbConn; query: SqlQuery; args: varargs[DbValue, dbValue]): int64	
+close	sqlite.html#close,DbConn	sqlite: close(db: DbConn)	
+open	sqlite.html#open,string,string,string,string	sqlite: open(connection, user, password, database: string): DbConn	
+setEncoding	sqlite.html#setEncoding,DbConn,string	sqlite: setEncoding(connection: DbConn; encoding: string): bool	
