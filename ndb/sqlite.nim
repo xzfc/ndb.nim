@@ -365,7 +365,7 @@ iterator rows*(db: DbConn, query: SqlQuery,
                      args: varargs[DbValue, dbValue]): Row {.
   tags: [ReadDbEffect].} =
   ## Executes the query and iterates over the result dataset.
-  db.withStmt(query, @args) do:
+  db.withStmt(query, @args):
     var L = column_count(stmt)
     var result = newRow(L)
     while stmt.next:
@@ -377,7 +377,7 @@ iterator instantRows*(db: DbConn, query: SqlQuery,
                       {.tags: [ReadDbEffect].} =
   ## Same as rows but returns a handle that can be used to get column values
   ## on demand using []. Returned handle is valid only within the iterator body.
-  withStmt(db, query, @args) do:
+  withStmt(db, query, @args):
     while stmt.next:
       yield stmt
 
@@ -408,7 +408,7 @@ iterator instantRows*(db: DbConn; columns: var DbColumns; query: SqlQuery,
                       {.tags: [ReadDbEffect].} =
   ## Same as rows but returns a handle that can be used to get column values
   ## on demand using []. Returned handle is valid only within the iterator body.
-  db.withStmt(query, @args) do:
+  db.withStmt(query, @args):
     setColumns(columns, stmt)
     while stmt.next:
       yield stmt
