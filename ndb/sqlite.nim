@@ -70,6 +70,11 @@
 ##  echo "Inserted item: ", db.getValue(string, sql"SELECT name FROM myTestTbl WHERE id=?", id).unsafeGet
 ##
 ##  db.close()
+##
+## See also
+## ========
+##
+## * `ndb/postgres module <postgres.html>`_ for PostgreSQL database wrapper
 
 {.deadCodeElim: on.}  # dce option deprecated
 

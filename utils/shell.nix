@@ -103,7 +103,7 @@ let
 in
 stdenv.mkDerivation {
   name = "db_sqlite_ex-shell";
-  buildInputs = [ sqlite ];
+  buildInputs = [ sqlite postgresql_11 ];
   nativeBuildInputs = [ nim-current ];
-  LD_LIBRARY_PATH = ''${sqlite.out}/lib'';
+  LD_LIBRARY_PATH = ''${sqlite.out}/lib:${postgresql_11.lib}/lib'';
 }

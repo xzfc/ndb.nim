@@ -30,7 +30,7 @@ else:
     dllName = "libpq.so(.5|)"
 type
   POid* = ptr Oid
-  Oid* = int32
+  Oid* = cuint
 
 const
   ERROR_MSG_LENGTH* = 4096
@@ -38,7 +38,7 @@ const
 
 type
   SockAddr* = array[1..112, int8]
-  PGresAttDesc*{.pure, final.} = object
+  PGresAttDesc*{.pure, final, nodecl.} = object
     name*: cstring
     adtid*: Oid
     adtsize*: int
@@ -71,39 +71,9 @@ type
     CONNECTION_OK, CONNECTION_BAD, CONNECTION_STARTED, CONNECTION_MADE,
     CONNECTION_AWAITING_RESPONSE, CONNECTION_AUTH_OK, CONNECTION_SETENV,
     CONNECTION_SSL_STARTUP, CONNECTION_NEEDED
-  PGconn*{.pure, final.} = object
-    pghost*: cstring
-    pgtty*: cstring
-    pgport*: cstring
-    pgoptions*: cstring
-    dbName*: cstring
-    status*: ConnStatusType
-    errorMessage*: array[0..(ERROR_MSG_LENGTH) - 1, char]
-    Pfin*: File
-    Pfout*: File
-    Pfdebug*: File
-    sock*: int32
-    laddr*: SockAddr
-    raddr*: SockAddr
-    salt*: array[0..(2) - 1, char]
-    asyncNotifyWaiting*: int32
-    notifyList*: pointer
-    pguser*: cstring
-    pgpass*: cstring
-    lobjfuncs*: PPGlobjfuncs
-
+  PGconn*{.pure, final, nodecl.} = object
   PPGconn* = ptr PGconn
-  PGresult*{.pure, final.} = object
-    ntups*: int32
-    numAttributes*: int32
-    attDescs*: PPGresAttDesc
-    tuples*: PPPGresAttValue
-    tupArrSize*: int32
-    resultStatus*: ExecStatusType
-    cmdStatus*: array[0..(CMDSTATUS_LEN) - 1, char]
-    binary*: int32
-    conn*: PPGconn
-
+  PGresult*{.pure, final, nodecl.} = object
   PPGresult* = ptr PGresult
   PPostgresPollingStatusType* = ptr PostgresPollingStatusType
   PostgresPollingStatusType* = enum
@@ -221,7 +191,7 @@ proc pqsetNoticeProcessor*(conn: PPGconn, theProc: PQnoticeProcessor,
     dynlib: dllName, importc: "PQsetNoticeProcessor".}
 proc pqexec*(conn: PPGconn, query: cstring): PPGresult{.cdecl, dynlib: dllName,
     importc: "PQexec".}
-proc pqexecParams*(conn: PPGconn, command: cstring, nParams: int32,
+proc pqexecParams*(conn: PPGconn, command: cstring, nParams: int,
                    paramTypes: POid, paramValues: cstringArray,
                    paramLengths, paramFormats: ptr int32, resultFormat: int32): PPGresult{.
     cdecl, dynlib: dllName, importc: "PQexecParams".}
