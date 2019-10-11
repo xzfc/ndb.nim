@@ -4,7 +4,7 @@ import times
 import unittest
 
 proc test_open(): DbConn =
-  open("", "postgres", "", "host=localhost port=5432")
+  open("postgres", "postgres", "", "postgres")
 
 suite "Examples":
   test "Opening a connection to a database":
