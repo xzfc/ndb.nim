@@ -134,6 +134,13 @@ template `?`*(v: typed): DbValue =
   ## Shortcut for ``dbValue``.
   dbValue(v)
 
+proc dbValue*[T](v: Option[T]): DbValue =
+  ## Wrap value of type T or NULL.
+  if v.isSome:
+    v.unsafeGet.dbValue
+  else:
+    DbValue(kind: dvkNull)
+
 proc `==`*(a: DbValue, b: DbValue): bool =
   ## Compare two DB values.
   if a.kind != b.kind:
