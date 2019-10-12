@@ -120,6 +120,10 @@ proc dbValue*(v: string): DbValue =
   ## Wrap string value.
   DbValue(kind: dvkString, s: v)
 
+proc dbValue*(v: bool): DbValue =
+  ## Wrap bool value.
+  DbValue(kind: dvkBool, b: v)
+
 proc dbValue*(v: DateTime): DbValue =
   ## Wrap DateTime value.
   DbValue(kind: dvkTimestamptz, t: v)
