@@ -1,0 +1,11 @@
+version: '3'
+services:
+  postgres:
+    image: postgres:11
+  nimble:
+    build: .
+    depends_on:
+      - postgres
+    volumes:
+      - .:/usr/src/app
+    entrypoint: nimble
