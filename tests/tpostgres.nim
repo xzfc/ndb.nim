@@ -1,10 +1,11 @@
 import ndb/postgres
+import os
 import options
 import times
 import unittest
 
 proc test_open(): DbConn =
-  open("postgres", "postgres", "", "postgres")
+  open(getEnv("PGHOST", "postgres"), "postgres", "", "postgres")
 
 suite "Examples":
   test "Opening a connection to a database":
