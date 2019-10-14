@@ -1,9 +1,11 @@
 # ndb/sqlite
 
-A fork of [db_sqlite], Nim's standard library higher level SQLite database wrapper.
-Latest supported Nim version is 0.20.
-[Documentation]( https://xzfc.github.io/ndb.nim )
+[![Documentation](https://img.shields.io/badge/-documentation-green)](https://xzfc.github.io/ndb.nim)
+[![Build Status](https://travis-ci.org/xzfc/ndb.nim.svg?branch=master)](https://travis-ci.org/xzfc/ndb.nim)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE.MIT)
+[![Version](https://nimble.directory/ci/badges/ndb/version.svg)](https://nimble.directory/pkg/ndb)
 
+A fork of [db_sqlite], Nim's standard library higher level SQLite database wrapper.
 Warning: work in progress, API is a subject of change.
 
 # Features
