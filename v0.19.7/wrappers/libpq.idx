@@ -1,0 +1,169 @@
+POid	wrappers/libpq.html#POid	libpq: POid	
+Oid	wrappers/libpq.html#Oid	libpq: Oid	
+ERROR_MSG_LENGTH	wrappers/libpq.html#ERROR_MSG_LENGTH	libpq: ERROR_MSG_LENGTH	
+CMDSTATUS_LEN	wrappers/libpq.html#CMDSTATUS_LEN	libpq: CMDSTATUS_LEN	
+SockAddr	wrappers/libpq.html#SockAddr	libpq: SockAddr	
+PGresAttDesc	wrappers/libpq.html#PGresAttDesc	libpq: PGresAttDesc	
+PPGresAttDesc	wrappers/libpq.html#PPGresAttDesc	libpq: PPGresAttDesc	
+PPPGresAttDesc	wrappers/libpq.html#PPPGresAttDesc	libpq: PPPGresAttDesc	
+PGresAttValue	wrappers/libpq.html#PGresAttValue	libpq: PGresAttValue	
+PPGresAttValue	wrappers/libpq.html#PPGresAttValue	libpq: PPGresAttValue	
+PPPGresAttValue	wrappers/libpq.html#PPPGresAttValue	libpq: PPPGresAttValue	
+PExecStatusType	wrappers/libpq.html#PExecStatusType	libpq: PExecStatusType	
+PGRES_EMPTY_QUERY	wrappers/libpq.html#PGRES_EMPTY_QUERY	ExecStatusType.PGRES_EMPTY_QUERY	
+PGRES_COMMAND_OK	wrappers/libpq.html#PGRES_COMMAND_OK	ExecStatusType.PGRES_COMMAND_OK	
+PGRES_TUPLES_OK	wrappers/libpq.html#PGRES_TUPLES_OK	ExecStatusType.PGRES_TUPLES_OK	
+PGRES_COPY_OUT	wrappers/libpq.html#PGRES_COPY_OUT	ExecStatusType.PGRES_COPY_OUT	
+PGRES_COPY_IN	wrappers/libpq.html#PGRES_COPY_IN	ExecStatusType.PGRES_COPY_IN	
+PGRES_BAD_RESPONSE	wrappers/libpq.html#PGRES_BAD_RESPONSE	ExecStatusType.PGRES_BAD_RESPONSE	
+PGRES_NONFATAL_ERROR	wrappers/libpq.html#PGRES_NONFATAL_ERROR	ExecStatusType.PGRES_NONFATAL_ERROR	
+PGRES_FATAL_ERROR	wrappers/libpq.html#PGRES_FATAL_ERROR	ExecStatusType.PGRES_FATAL_ERROR	
+ExecStatusType	wrappers/libpq.html#ExecStatusType	libpq: ExecStatusType	
+PGlobjfuncs	wrappers/libpq.html#PGlobjfuncs	libpq: PGlobjfuncs	
+PPGlobjfuncs	wrappers/libpq.html#PPGlobjfuncs	libpq: PPGlobjfuncs	
+PConnStatusType	wrappers/libpq.html#PConnStatusType	libpq: PConnStatusType	
+CONNECTION_OK	wrappers/libpq.html#CONNECTION_OK	ConnStatusType.CONNECTION_OK	
+CONNECTION_BAD	wrappers/libpq.html#CONNECTION_BAD	ConnStatusType.CONNECTION_BAD	
+CONNECTION_STARTED	wrappers/libpq.html#CONNECTION_STARTED	ConnStatusType.CONNECTION_STARTED	
+CONNECTION_MADE	wrappers/libpq.html#CONNECTION_MADE	ConnStatusType.CONNECTION_MADE	
+CONNECTION_AWAITING_RESPONSE	wrappers/libpq.html#CONNECTION_AWAITING_RESPONSE	ConnStatusType.CONNECTION_AWAITING_RESPONSE	
+CONNECTION_AUTH_OK	wrappers/libpq.html#CONNECTION_AUTH_OK	ConnStatusType.CONNECTION_AUTH_OK	
+CONNECTION_SETENV	wrappers/libpq.html#CONNECTION_SETENV	ConnStatusType.CONNECTION_SETENV	
+CONNECTION_SSL_STARTUP	wrappers/libpq.html#CONNECTION_SSL_STARTUP	ConnStatusType.CONNECTION_SSL_STARTUP	
+CONNECTION_NEEDED	wrappers/libpq.html#CONNECTION_NEEDED	ConnStatusType.CONNECTION_NEEDED	
+ConnStatusType	wrappers/libpq.html#ConnStatusType	libpq: ConnStatusType	
+PGconn	wrappers/libpq.html#PGconn	libpq: PGconn	
+PPGconn	wrappers/libpq.html#PPGconn	libpq: PPGconn	
+PGresult	wrappers/libpq.html#PGresult	libpq: PGresult	
+PPGresult	wrappers/libpq.html#PPGresult	libpq: PPGresult	
+PPostgresPollingStatusType	wrappers/libpq.html#PPostgresPollingStatusType	libpq: PPostgresPollingStatusType	
+PGRES_POLLING_FAILED	wrappers/libpq.html#PGRES_POLLING_FAILED	PostgresPollingStatusType.PGRES_POLLING_FAILED	
+PGRES_POLLING_READING	wrappers/libpq.html#PGRES_POLLING_READING	PostgresPollingStatusType.PGRES_POLLING_READING	
+PGRES_POLLING_WRITING	wrappers/libpq.html#PGRES_POLLING_WRITING	PostgresPollingStatusType.PGRES_POLLING_WRITING	
+PGRES_POLLING_OK	wrappers/libpq.html#PGRES_POLLING_OK	PostgresPollingStatusType.PGRES_POLLING_OK	
+PGRES_POLLING_ACTIVE	wrappers/libpq.html#PGRES_POLLING_ACTIVE	PostgresPollingStatusType.PGRES_POLLING_ACTIVE	
+PostgresPollingStatusType	wrappers/libpq.html#PostgresPollingStatusType	libpq: PostgresPollingStatusType	
+PPGTransactionStatusType	wrappers/libpq.html#PPGTransactionStatusType	libpq: PPGTransactionStatusType	
+PQTRANS_IDLE	wrappers/libpq.html#PQTRANS_IDLE	PGTransactionStatusType.PQTRANS_IDLE	
+PQTRANS_ACTIVE	wrappers/libpq.html#PQTRANS_ACTIVE	PGTransactionStatusType.PQTRANS_ACTIVE	
+PQTRANS_INTRANS	wrappers/libpq.html#PQTRANS_INTRANS	PGTransactionStatusType.PQTRANS_INTRANS	
+PQTRANS_INERROR	wrappers/libpq.html#PQTRANS_INERROR	PGTransactionStatusType.PQTRANS_INERROR	
+PQTRANS_UNKNOWN	wrappers/libpq.html#PQTRANS_UNKNOWN	PGTransactionStatusType.PQTRANS_UNKNOWN	
+PGTransactionStatusType	wrappers/libpq.html#PGTransactionStatusType	libpq: PGTransactionStatusType	
+PPGVerbosity	wrappers/libpq.html#PPGVerbosity	libpq: PPGVerbosity	
+PQERRORS_TERSE	wrappers/libpq.html#PQERRORS_TERSE	PGVerbosity.PQERRORS_TERSE	
+PQERRORS_DEFAULT	wrappers/libpq.html#PQERRORS_DEFAULT	PGVerbosity.PQERRORS_DEFAULT	
+PQERRORS_VERBOSE	wrappers/libpq.html#PQERRORS_VERBOSE	PGVerbosity.PQERRORS_VERBOSE	
+PGVerbosity	wrappers/libpq.html#PGVerbosity	libpq: PGVerbosity	
+PPGNotify	wrappers/libpq.html#PPGNotify	libpq: PPGNotify	
+pgNotify	wrappers/libpq.html#pgNotify	libpq: pgNotify	
+PQnoticeReceiver	wrappers/libpq.html#PQnoticeReceiver	libpq: PQnoticeReceiver	
+PQnoticeProcessor	wrappers/libpq.html#PQnoticeProcessor	libpq: PQnoticeProcessor	
+Ppqbool	wrappers/libpq.html#Ppqbool	libpq: Ppqbool	
+pqbool	wrappers/libpq.html#pqbool	libpq: pqbool	
+PPQprintOpt	wrappers/libpq.html#PPQprintOpt	libpq: PPQprintOpt	
+PQprintOpt	wrappers/libpq.html#PQprintOpt	libpq: PQprintOpt	
+PPQconninfoOption	wrappers/libpq.html#PPQconninfoOption	libpq: PPQconninfoOption	
+PQconninfoOption	wrappers/libpq.html#PQconninfoOption	libpq: PQconninfoOption	
+PPQArgBlock	wrappers/libpq.html#PPQArgBlock	libpq: PPQArgBlock	
+PQArgBlock	wrappers/libpq.html#PQArgBlock	libpq: PQArgBlock	
+pqinitOpenSSL	wrappers/libpq.html#pqinitOpenSSL,int32,int32	libpq: pqinitOpenSSL(do_ssl: int32; do_crypto: int32)	
+pqconnectStart	wrappers/libpq.html#pqconnectStart,cstring	libpq: pqconnectStart(conninfo: cstring): PPGconn	
+pqconnectPoll	wrappers/libpq.html#pqconnectPoll,PPGconn	libpq: pqconnectPoll(conn: PPGconn): PostgresPollingStatusType	
+pqconnectdb	wrappers/libpq.html#pqconnectdb,cstring	libpq: pqconnectdb(conninfo: cstring): PPGconn	
+pqsetdbLogin	wrappers/libpq.html#pqsetdbLogin,cstring,cstring,cstring,cstring,cstring,cstring,cstring	libpq: pqsetdbLogin(pghost: cstring; pgport: cstring; pgoptions: cstring; pgtty: cstring;\n             dbName: cstring; login: cstring; pwd: cstring): PPGconn	
+pqfinish	wrappers/libpq.html#pqfinish,PPGconn	libpq: pqfinish(conn: PPGconn)	
+pqconndefaults	wrappers/libpq.html#pqconndefaults	libpq: pqconndefaults(): PPQconninfoOption	
+pqconninfoFree	wrappers/libpq.html#pqconninfoFree,PPQconninfoOption	libpq: pqconninfoFree(connOptions: PPQconninfoOption)	
+pqresetStart	wrappers/libpq.html#pqresetStart,PPGconn	libpq: pqresetStart(conn: PPGconn): int32	
+pqresetPoll	wrappers/libpq.html#pqresetPoll,PPGconn	libpq: pqresetPoll(conn: PPGconn): PostgresPollingStatusType	
+pqreset	wrappers/libpq.html#pqreset,PPGconn	libpq: pqreset(conn: PPGconn)	
+pqrequestCancel	wrappers/libpq.html#pqrequestCancel,PPGconn	libpq: pqrequestCancel(conn: PPGconn): int32	
+pqdb	wrappers/libpq.html#pqdb,PPGconn	libpq: pqdb(conn: PPGconn): cstring	
+pquser	wrappers/libpq.html#pquser,PPGconn	libpq: pquser(conn: PPGconn): cstring	
+pqpass	wrappers/libpq.html#pqpass,PPGconn	libpq: pqpass(conn: PPGconn): cstring	
+pqhost	wrappers/libpq.html#pqhost,PPGconn	libpq: pqhost(conn: PPGconn): cstring	
+pqport	wrappers/libpq.html#pqport,PPGconn	libpq: pqport(conn: PPGconn): cstring	
+pqtty	wrappers/libpq.html#pqtty,PPGconn	libpq: pqtty(conn: PPGconn): cstring	
+pqoptions	wrappers/libpq.html#pqoptions,PPGconn	libpq: pqoptions(conn: PPGconn): cstring	
+pqstatus	wrappers/libpq.html#pqstatus,PPGconn	libpq: pqstatus(conn: PPGconn): ConnStatusType	
+pqtransactionStatus	wrappers/libpq.html#pqtransactionStatus,PPGconn	libpq: pqtransactionStatus(conn: PPGconn): PGTransactionStatusType	
+pqparameterStatus	wrappers/libpq.html#pqparameterStatus,PPGconn,cstring	libpq: pqparameterStatus(conn: PPGconn; paramName: cstring): cstring	
+pqprotocolVersion	wrappers/libpq.html#pqprotocolVersion,PPGconn	libpq: pqprotocolVersion(conn: PPGconn): int32	
+pqerrorMessage	wrappers/libpq.html#pqerrorMessage,PPGconn	libpq: pqerrorMessage(conn: PPGconn): cstring	
+pqsocket	wrappers/libpq.html#pqsocket,PPGconn	libpq: pqsocket(conn: PPGconn): int32	
+pqbackendPID	wrappers/libpq.html#pqbackendPID,PPGconn	libpq: pqbackendPID(conn: PPGconn): int32	
+pqclientEncoding	wrappers/libpq.html#pqclientEncoding,PPGconn	libpq: pqclientEncoding(conn: PPGconn): int32	
+pqsetClientEncoding	wrappers/libpq.html#pqsetClientEncoding,PPGconn,cstring	libpq: pqsetClientEncoding(conn: PPGconn; encoding: cstring): int32	
+pqsetErrorVerbosity	wrappers/libpq.html#pqsetErrorVerbosity,PPGconn,PGVerbosity	libpq: pqsetErrorVerbosity(conn: PPGconn; verbosity: PGVerbosity): PGVerbosity	
+pqtrace	wrappers/libpq.html#pqtrace,PPGconn,File	libpq: pqtrace(conn: PPGconn; debug_port: File)	
+pquntrace	wrappers/libpq.html#pquntrace,PPGconn	libpq: pquntrace(conn: PPGconn)	
+pqsetNoticeReceiver	wrappers/libpq.html#pqsetNoticeReceiver,PPGconn,PQnoticeReceiver,pointer	libpq: pqsetNoticeReceiver(conn: PPGconn; theProc: PQnoticeReceiver; arg: pointer): PQnoticeReceiver	
+pqsetNoticeProcessor	wrappers/libpq.html#pqsetNoticeProcessor,PPGconn,PQnoticeProcessor,pointer	libpq: pqsetNoticeProcessor(conn: PPGconn; theProc: PQnoticeProcessor; arg: pointer): PQnoticeProcessor	
+pqexec	wrappers/libpq.html#pqexec,PPGconn,cstring	libpq: pqexec(conn: PPGconn; query: cstring): PPGresult	
+pqexecParams	wrappers/libpq.html#pqexecParams,PPGconn,cstring,int,POid,cstringArray,ptr.int32,ptr.int32,int32	libpq: pqexecParams(conn: PPGconn; command: cstring; nParams: int; paramTypes: POid;\n             paramValues: cstringArray; paramLengths, paramFormats: ptr int32;\n             resultFormat: int32): PPGresult	
+pqprepare	wrappers/libpq.html#pqprepare,PPGconn,cstring,cstring,int32,POid	libpq: pqprepare(conn: PPGconn; stmtName, query: cstring; nParams: int32; paramTypes: POid): PPGresult	
+pqexecPrepared	wrappers/libpq.html#pqexecPrepared,PPGconn,cstring,int32,cstringArray,ptr.int32,ptr.int32,int32	libpq: pqexecPrepared(conn: PPGconn; stmtName: cstring; nParams: int32;\n               paramValues: cstringArray; paramLengths, paramFormats: ptr int32;\n               resultFormat: int32): PPGresult	
+pqsendQuery	wrappers/libpq.html#pqsendQuery,PPGconn,cstring	libpq: pqsendQuery(conn: PPGconn; query: cstring): int32	
+pqsendQueryParams	wrappers/libpq.html#pqsendQueryParams,PPGconn,cstring,int32,POid,cstringArray,ptr.int32,ptr.int32,int32	libpq: pqsendQueryParams(conn: PPGconn; command: cstring; nParams: int32; paramTypes: POid;\n                  paramValues: cstringArray;\n                  paramLengths, paramFormats: ptr int32; resultFormat: int32): int32	
+pqsendQueryPrepared	wrappers/libpq.html#pqsendQueryPrepared,PPGconn,cstring,int32,cstringArray,ptr.int32,ptr.int32,int32	libpq: pqsendQueryPrepared(conn: PPGconn; stmtName: cstring; nParams: int32;\n                    paramValues: cstringArray;\n                    paramLengths, paramFormats: ptr int32; resultFormat: int32): int32	
+pqgetResult	wrappers/libpq.html#pqgetResult,PPGconn	libpq: pqgetResult(conn: PPGconn): PPGresult	
+pqisBusy	wrappers/libpq.html#pqisBusy,PPGconn	libpq: pqisBusy(conn: PPGconn): int32	
+pqconsumeInput	wrappers/libpq.html#pqconsumeInput,PPGconn	libpq: pqconsumeInput(conn: PPGconn): int32	
+pqnotifies	wrappers/libpq.html#pqnotifies,PPGconn	libpq: pqnotifies(conn: PPGconn): PPGNotify	
+pqputCopyData	wrappers/libpq.html#pqputCopyData,PPGconn,cstring,int32	libpq: pqputCopyData(conn: PPGconn; buffer: cstring; nbytes: int32): int32	
+pqputCopyEnd	wrappers/libpq.html#pqputCopyEnd,PPGconn,cstring	libpq: pqputCopyEnd(conn: PPGconn; errormsg: cstring): int32	
+pqgetCopyData	wrappers/libpq.html#pqgetCopyData,PPGconn,cstringArray,int32	libpq: pqgetCopyData(conn: PPGconn; buffer: cstringArray; async: int32): int32	
+pqgetline	wrappers/libpq.html#pqgetline,PPGconn,cstring,int32	libpq: pqgetline(conn: PPGconn; str: cstring; len: int32): int32	
+pqputline	wrappers/libpq.html#pqputline,PPGconn,cstring	libpq: pqputline(conn: PPGconn; str: cstring): int32	
+pqgetlineAsync	wrappers/libpq.html#pqgetlineAsync,PPGconn,cstring,int32	libpq: pqgetlineAsync(conn: PPGconn; buffer: cstring; bufsize: int32): int32	
+pqputnbytes	wrappers/libpq.html#pqputnbytes,PPGconn,cstring,int32	libpq: pqputnbytes(conn: PPGconn; buffer: cstring; nbytes: int32): int32	
+pqendcopy	wrappers/libpq.html#pqendcopy,PPGconn	libpq: pqendcopy(conn: PPGconn): int32	
+pqsetnonblocking	wrappers/libpq.html#pqsetnonblocking,PPGconn,int32	libpq: pqsetnonblocking(conn: PPGconn; arg: int32): int32	
+pqisnonblocking	wrappers/libpq.html#pqisnonblocking,PPGconn	libpq: pqisnonblocking(conn: PPGconn): int32	
+pqflush	wrappers/libpq.html#pqflush,PPGconn	libpq: pqflush(conn: PPGconn): int32	
+pqfn	wrappers/libpq.html#pqfn,PPGconn,int32,ptr.int32,ptr.int32,int32,PPQArgBlock,int32	libpq: pqfn(conn: PPGconn; fnid: int32; result_buf, result_len: ptr int32;\n     result_is_int: int32; args: PPQArgBlock; nargs: int32): PPGresult	
+pqresultStatus	wrappers/libpq.html#pqresultStatus,PPGresult	libpq: pqresultStatus(res: PPGresult): ExecStatusType	
+pqresStatus	wrappers/libpq.html#pqresStatus,ExecStatusType	libpq: pqresStatus(status: ExecStatusType): cstring	
+pqresultErrorMessage	wrappers/libpq.html#pqresultErrorMessage,PPGresult	libpq: pqresultErrorMessage(res: PPGresult): cstring	
+pqresultErrorField	wrappers/libpq.html#pqresultErrorField,PPGresult,int32	libpq: pqresultErrorField(res: PPGresult; fieldcode: int32): cstring	
+pqntuples	wrappers/libpq.html#pqntuples,PPGresult	libpq: pqntuples(res: PPGresult): int32	
+pqnfields	wrappers/libpq.html#pqnfields,PPGresult	libpq: pqnfields(res: PPGresult): int32	
+pqbinaryTuples	wrappers/libpq.html#pqbinaryTuples,PPGresult	libpq: pqbinaryTuples(res: PPGresult): int32	
+pqfname	wrappers/libpq.html#pqfname,PPGresult,int32	libpq: pqfname(res: PPGresult; field_num: int32): cstring	
+pqfnumber	wrappers/libpq.html#pqfnumber,PPGresult,cstring	libpq: pqfnumber(res: PPGresult; field_name: cstring): int32	
+pqftable	wrappers/libpq.html#pqftable,PPGresult,int32	libpq: pqftable(res: PPGresult; field_num: int32): Oid	
+pqftablecol	wrappers/libpq.html#pqftablecol,PPGresult,int32	libpq: pqftablecol(res: PPGresult; field_num: int32): int32	
+pqfformat	wrappers/libpq.html#pqfformat,PPGresult,int32	libpq: pqfformat(res: PPGresult; field_num: int32): int32	
+pqftype	wrappers/libpq.html#pqftype,PPGresult,int32	libpq: pqftype(res: PPGresult; field_num: int32): Oid	
+pqfsize	wrappers/libpq.html#pqfsize,PPGresult,int32	libpq: pqfsize(res: PPGresult; field_num: int32): int32	
+pqfmod	wrappers/libpq.html#pqfmod,PPGresult,int32	libpq: pqfmod(res: PPGresult; field_num: int32): int32	
+pqcmdStatus	wrappers/libpq.html#pqcmdStatus,PPGresult	libpq: pqcmdStatus(res: PPGresult): cstring	
+pqoidStatus	wrappers/libpq.html#pqoidStatus,PPGresult	libpq: pqoidStatus(res: PPGresult): cstring	
+pqoidValue	wrappers/libpq.html#pqoidValue,PPGresult	libpq: pqoidValue(res: PPGresult): Oid	
+pqcmdTuples	wrappers/libpq.html#pqcmdTuples,PPGresult	libpq: pqcmdTuples(res: PPGresult): cstring	
+pqgetvalue	wrappers/libpq.html#pqgetvalue,PPGresult,int32,int32	libpq: pqgetvalue(res: PPGresult; tup_num: int32; field_num: int32): cstring	
+pqgetlength	wrappers/libpq.html#pqgetlength,PPGresult,int32,int32	libpq: pqgetlength(res: PPGresult; tup_num: int32; field_num: int32): int32	
+pqgetisnull	wrappers/libpq.html#pqgetisnull,PPGresult,int32,int32	libpq: pqgetisnull(res: PPGresult; tup_num: int32; field_num: int32): int32	
+pqclear	wrappers/libpq.html#pqclear,PPGresult	libpq: pqclear(res: PPGresult)	
+pqfreemem	wrappers/libpq.html#pqfreemem,pointer	libpq: pqfreemem(p: pointer)	
+pqmakeEmptyPGresult	wrappers/libpq.html#pqmakeEmptyPGresult,PPGconn,ExecStatusType	libpq: pqmakeEmptyPGresult(conn: PPGconn; status: ExecStatusType): PPGresult	
+pqescapeString	wrappers/libpq.html#pqescapeString,cstring,cstring,int	libpq: pqescapeString(till, `from`: cstring; len: int): int	
+pqescapeBytea	wrappers/libpq.html#pqescapeBytea,cstring,int,int	libpq: pqescapeBytea(bintext: cstring; binlen: int; bytealen: var int): cstring	
+pqunescapeBytea	wrappers/libpq.html#pqunescapeBytea,cstring,int	libpq: pqunescapeBytea(strtext: cstring; retbuflen: var int): cstring	
+pqprint	wrappers/libpq.html#pqprint,File,PPGresult,PPQprintOpt	libpq: pqprint(fout: File; res: PPGresult; ps: PPQprintOpt)	
+pqdisplayTuples	wrappers/libpq.html#pqdisplayTuples,PPGresult,File,int32,cstring,int32,int32	libpq: pqdisplayTuples(res: PPGresult; fp: File; fillAlign: int32; fieldSep: cstring;\n                printHeader: int32; quiet: int32)	
+pqprintTuples	wrappers/libpq.html#pqprintTuples,PPGresult,File,int32,int32,int32	libpq: pqprintTuples(res: PPGresult; fout: File; printAttName: int32; terseOutput: int32;\n              width: int32)	
+lo_open	wrappers/libpq.html#lo_open,PPGconn,Oid,int32	libpq: lo_open(conn: PPGconn; lobjId: Oid; mode: int32): int32	
+lo_close	wrappers/libpq.html#lo_close,PPGconn,int32	libpq: lo_close(conn: PPGconn; fd: int32): int32	
+lo_read	wrappers/libpq.html#lo_read,PPGconn,int32,cstring,int	libpq: lo_read(conn: PPGconn; fd: int32; buf: cstring; length: int): int32	
+lo_write	wrappers/libpq.html#lo_write,PPGconn,int32,cstring,int	libpq: lo_write(conn: PPGconn; fd: int32; buf: cstring; length: int): int32	
+lo_lseek	wrappers/libpq.html#lo_lseek,PPGconn,int32,int32,int32	libpq: lo_lseek(conn: PPGconn; fd: int32; offset: int32; whence: int32): int32	
+lo_creat	wrappers/libpq.html#lo_creat,PPGconn,int32	libpq: lo_creat(conn: PPGconn; mode: int32): Oid	
+lo_tell	wrappers/libpq.html#lo_tell,PPGconn,int32	libpq: lo_tell(conn: PPGconn; fd: int32): int32	
+lo_unlink	wrappers/libpq.html#lo_unlink,PPGconn,Oid	libpq: lo_unlink(conn: PPGconn; lobjId: Oid): int32	
+lo_import	wrappers/libpq.html#lo_import,PPGconn,cstring	libpq: lo_import(conn: PPGconn; filename: cstring): Oid	
+lo_export	wrappers/libpq.html#lo_export,PPGconn,Oid,cstring	libpq: lo_export(conn: PPGconn; lobjId: Oid; filename: cstring): int32	
+pqmblen	wrappers/libpq.html#pqmblen,cstring,int32	libpq: pqmblen(s: cstring; encoding: int32): int32	
+pqenv2encoding	wrappers/libpq.html#pqenv2encoding	libpq: pqenv2encoding(): int32	
+pqsetdb	wrappers/libpq.html#pqsetdb,cstring,cstring,cstring,cstring,cstring	libpq: pqsetdb(M_PGHOST, M_PGPORT, M_PGOPT, M_PGTTY, M_DBNAME: cstring): PPGconn	

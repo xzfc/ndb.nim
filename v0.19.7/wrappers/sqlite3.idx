@@ -1,0 +1,1 @@
+db_handle	wrappers/sqlite3.html#db_handle,PStmt	sqlite3: db_handle(para1: PStmt): PSqlite3	
