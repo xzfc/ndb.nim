@@ -140,7 +140,7 @@ suite "Bind value of type":
     check rows == @[DbValue(kind: dvkString, s: "null")]
     db.close()
   test "null (nil)":
-    when NimMinor <= 19:
+    when NimMajor == 0 and NimMinor <= 19:
       # See dbValue(nil) doc
       skip()
     else:
