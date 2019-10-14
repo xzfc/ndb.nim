@@ -3,9 +3,10 @@ services:
   postgres:
     image: postgres:11
   nimble:
-    build: .
+    build: utils
     depends_on:
       - postgres
     volumes:
       - .:/usr/src/app
     entrypoint: nimble
+    working_dir: /usr/src/app
