@@ -1,4 +1,4 @@
-{ v ? "0.20.2" }:
+{ v ? "1.0.0" }:
 with import <nixpkgs> {};
 let
   nim-common = version: sha256:
@@ -18,13 +18,14 @@ let
   nim-git =
     stdenv.mkDerivation rec {
       name = "nim-${version}";
-      version = "0.20.2-git";
+      version = "1.0.0-git";
     
       src = fetchFromGitHub {
         owner = "nim-lang";
         repo = "Nim";
-        rev = "f9600b7207e45573ee066ec7c9145df113ff5b99";
-        sha256 = "1vx89j4rydw6gj9gcwxpih18kqaax9fcgfvxi7v9q554i6miwg55";
+        rev = "990aadc43c3b492a1df61582d5bd212a0643aee4";
+        # 2019-10-14
+        sha256 = "0yahyv8wxgsjpxk7548x82hgfi7cwj5jcca1hvfnnymdrxa2z8hj";
       };
       src-csources = fetchFromGitHub {
         owner = "nim-lang";
@@ -35,8 +36,8 @@ let
       src-nimble = fetchFromGitHub {
         owner = "nim-lang";
         repo = "nimble";
-        rev = "v0.10.2";
-        sha256 = "1l292d1z9a5wrc1i58znlpxbqvh69pr0qdv9zvhq29lr9vnkx1a2";
+        rev = "v0.11.0";
+        sha256 = "1n8qi10173cbwsai2y346zf3r14hk8qib2qfcfnlx9a8hibrh6rv";
       };
     
       enableParallelBuilding = true;
@@ -91,6 +92,7 @@ let
     };
   nim-versions = {
     "git"    = nim-git;
+    "1.0.0"  = nim-common "1.0.0"  "1pg0lxahis8zfk6rdzdj281bahl8wglpjgngkc4vg1pc9p61fj03";
     "0.20.2" = nim-common "0.20.2" "0pibil10x0c181kw705phlwk8bn8dy5ghqd9h9fm6i9afrz5ryp1";
     "0.19.6" = nim-common "0.19.6" "0a9sgvb370iv4fwkqha8x4x02zngb505vlfn9x6l74lks9c0r7x0";
     "0.19.4" = nim-common "0.19.4" "0k59dhfsg5wnkc3nxg5a336pjd9jnfxabns63bl9n28iwdg16hgl";
