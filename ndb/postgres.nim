@@ -274,6 +274,17 @@ proc dbQuote*(s: string): string =
     else: add(result, c)
   add(result, '\'')
 
+proc `$`*(v: DbValue): string =
+  case v.kind
+  of dvkBool:
+    if v.b: "t" else: "f"
+  of dvkInt:          $v.i
+  of dvkFloat:        $v.f
+  of dvkString:       v.s.dbQuote
+  of dvkTimestamptz:  v.t.format("yyyy-MM-dd HH:mm:sszz")
+  of dvkOther:        v.o.value
+  of dvkNull:         "NULL"
+
 proc dbFormat(formatstr: SqlQuery, args: varargs[string]): string =
   result = ""
   var a = 0
