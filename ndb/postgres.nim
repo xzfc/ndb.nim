@@ -196,7 +196,7 @@ proc newDbParam(args: varargs[DbValue]): DbParam =
       result.values[i] = ($args[i].s).strdup
       result.typesSeq[i] = 25
     of dvkTimestamptz:
-      result.values[i] = $args[i].t.format("yyyy-MM-dd HH:mm:sszz")
+      result.values[i] = ($args[i].t.format("yyyy-MM-dd HH:mm:sszz")).strdup
       result.typesSeq[i] = 1184
     of dvkOther:
       result.values[i] = args[i].o.value.strdup
