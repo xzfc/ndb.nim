@@ -1,0 +1,46 @@
+PostgreSQL	postgres.html#postgresql_1	Module postgres	
+Parameter substitution	postgres.html#parameter-substitution	 Parameter substitution	
+Examples	postgres.html#examples	 Examples	
+Opening a connection to a database	postgres.html#examples-opening-a-connection-to-a-database	  Opening a connection to a database	
+Creating a table	postgres.html#examples-creating-a-table	  Creating a table	
+Inserting data	postgres.html#examples-inserting-data	  Inserting data	
+See also	postgres.html#see-also	 See also	
+DbConn	postgres.html#DbConn	postgres: DbConn	
+RowOld	postgres.html#RowOld	postgres: RowOld	
+Row	postgres.html#Row	postgres: Row	
+InstantRow	postgres.html#InstantRow	postgres: InstantRow	
+SqlPrepared	postgres.html#SqlPrepared	postgres: SqlPrepared	
+dvkBool	postgres.html#dvkBool	DbValueKind.dvkBool	
+dvkInt	postgres.html#dvkInt	DbValueKind.dvkInt	
+dvkFloat	postgres.html#dvkFloat	DbValueKind.dvkFloat	
+dvkString	postgres.html#dvkString	DbValueKind.dvkString	
+dvkTimestamptz	postgres.html#dvkTimestamptz	DbValueKind.dvkTimestamptz	
+dvkOther	postgres.html#dvkOther	DbValueKind.dvkOther	
+dvkNull	postgres.html#dvkNull	DbValueKind.dvkNull	
+DbValueKind	postgres.html#DbValueKind	postgres: DbValueKind	
+DbValueTypes	postgres.html#DbValueTypes	postgres: DbValueTypes	
+DbOther	postgres.html#DbOther	postgres: DbOther	
+DbNull	postgres.html#DbNull	postgres: DbNull	
+DbValue	postgres.html#DbValue	postgres: DbValue	
+dbValue	postgres.html#dbValue,DbValue	postgres: dbValue(v: DbValue): DbValue	
+dbValue	postgres.html#dbValue_2	postgres: dbValue(v: int | int8 | int16 | int32 | int64 | uint8 | uint16 | uint32): DbValue	
+dbValue	postgres.html#dbValue,float64	postgres: dbValue(v: float64): DbValue	
+dbValue	postgres.html#dbValue,string	postgres: dbValue(v: string): DbValue	
+dbValue	postgres.html#dbValue,bool	postgres: dbValue(v: bool): DbValue	
+dbValue	postgres.html#dbValue,DateTime	postgres: dbValue(v: DateTime): DbValue	
+dbValue	postgres.html#dbValue_3	postgres: dbValue(v: DbNull | type(nil)): DbValue	
+`?`	postgres.html#?.t,typed	postgres: `?`(v: typed): DbValue	
+dbValue	postgres.html#dbValue,Option[T]	postgres: dbValue[T](v: Option[T]): DbValue	
+`==`	postgres.html#==,DbValue,DbValue	postgres: `==`(a: DbValue; b: DbValue): bool	
+dbError	postgres.html#dbError,DbConn	postgres: dbError(db: DbConn)	
+dbQuote	postgres.html#dbQuote,string	postgres: dbQuote(s: string): string	
+`$`	postgres.html#$,DbValue	postgres: `$`(v: DbValue): string	
+exec	postgres.html#exec,DbConn,SqlQuery,varargs[DbValue,dbValue]	postgres: exec(db: DbConn; query: SqlQuery; args: varargs[DbValue, dbValue])	
+rows	postgres.html#rows.i,DbConn,SqlQuery,varargs[DbValue,dbValue]	postgres: rows(db: DbConn; query: SqlQuery; args: varargs[DbValue, dbValue]): Row	
+fastRows	postgres.html#fastRows.i,DbConn,SqlQuery,varargs[DbValue,dbValue]	postgres: fastRows(db: DbConn; query: SqlQuery; args: varargs[DbValue, dbValue]): Row	
+getRow	postgres.html#getRow,DbConn,SqlQuery,varargs[DbValue,dbValue]	postgres: getRow(db: DbConn; query: SqlQuery; args: varargs[DbValue, dbValue]): Option[Row]	
+getAllRows	postgres.html#getAllRows,DbConn,SqlQuery,varargs[DbValue,dbValue]	postgres: getAllRows(db: DbConn; query: SqlQuery; args: varargs[DbValue, dbValue]): seq[Row]	
+insertID	postgres.html#insertID,DbConn,SqlQuery,varargs[DbValue,dbValue]	postgres: insertID(db: DbConn; query: SqlQuery; args: varargs[DbValue, dbValue]): int64	
+close	postgres.html#close,DbConn	postgres: close(db: DbConn)	
+open	postgres.html#open,string,string,string,string	postgres: open(connection, user, password, database: string): DbConn	
+setEncoding	postgres.html#setEncoding,DbConn,string	postgres: setEncoding(connection: DbConn; encoding: string): bool	
