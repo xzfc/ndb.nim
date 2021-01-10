@@ -95,7 +95,7 @@ type
     of dvkTimestamptz:
       t*: DateTime
     of dvkOther:
-      o: DbOther
+      o*: DbOther
     of dvkNull:
       discard
 
