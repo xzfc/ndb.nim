@@ -5,7 +5,10 @@ import times
 import unittest
 
 proc test_open(): DbConn =
-  open(getEnv("PGHOST", "postgres"), "postgres", "", "postgres")
+  open(getEnv("PGHOST", "postgres"),
+       getEnv("PGUSER", "postgres"),
+       getEnv("PGPASSWORD", "postgres"),
+       getEnv("PGDATABASE", "postgres"))
 
 suite "Examples":
   test "Opening a connection to a database":

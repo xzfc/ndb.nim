@@ -2,6 +2,8 @@ version: '3'
 services:
   postgres:
     image: postgres:11
+    environment:
+    - POSTGRES_PASSWORD=postgres
   nimble:
     build: utils
     depends_on:

@@ -37,7 +37,7 @@ n|nix) test_f=test_nix;;
 esac
 shift
 
-[ "$#" = 0 ] && set -- 1.0.0 0.20.2 0.19.6
+[ "$#" = 0 ] && set -- 1.4.2 1.2.6 1.0.6
 
 for nim_version in "$@";do
 	printf "\x1b[1m%s\x1b[m\n" "$nim_version"
