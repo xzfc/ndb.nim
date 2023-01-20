@@ -80,7 +80,11 @@
 
 import strutils, wrappers/sqlite3, options
 
-import db_common
+when NimMajor == 1 and NimMinor <= 6:
+  import std/db_common
+else:
+  import db_connector/db_common
+
 export db_common
 
 type
