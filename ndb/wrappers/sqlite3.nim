@@ -15,7 +15,11 @@ else:
   const
     Lib = "libsqlite3.so(|.0)"
 
-import std/sqlite3
+when NimMajor == 1 and NimMinor <= 6:
+  import std/sqlite3
+else:
+  import db_connector/sqlite3
+
 export sqlite3
 
 proc db_handle*(para1: Pstmt): PSqlite3 {.cdecl, dynlib: Lib, importc: "sqlite3_db_handle".}
