@@ -372,7 +372,7 @@ proc prepare*(db: DbConn; stmtName: string, query: SqlQuery;
   if pqResultStatus(res) != PGRES_COMMAND_OK: dbError(db)
   return SqlPrepared(stmtName)
 
-proc setRow(res: PPGresult, r: var RowOld, line, cols: int32) =
+proc setRow(res: PPGresult, r: var RowOld, line, cols: int32) {.tags: [ReadDbEffect] .} =
   for col in 0'i32..cols-1:
     setLen(r[col], 0)
     let x = pqgetvalue(res, line, col)
