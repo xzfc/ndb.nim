@@ -15,7 +15,7 @@ else:
   const
     Lib = "libsqlite3.so(|.0)"
 
-when NimMajor == 1 and NimMinor <= 6:
+when NimMajor == 1 and NimMinor <= 7:
   import std/sqlite3
 else:
   import db_connector/sqlite3
