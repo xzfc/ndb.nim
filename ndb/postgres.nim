@@ -381,13 +381,13 @@ proc setRow(res: PPGresult, r: var RowOld, line, cols: int32) {.tags: [ReadDbEff
     else:
       add(r[col], x)
 
-proc parseDate1(s: string): DateTime =
+proc parseDate1(s: string): DateTime {.tags: [TimeEffect].} =
   # TODO: parse optional fractional seconds
   # `select now();` => `2019-09-03 12:18:20.022531+00`
   # Reference: ISO 8601, https://www.postgresql.org/docs/11/datatype-datetime.html
   s.parse("yyyy-MM-dd HH:mm:sszz", utc())
 
-proc parseDate(s: string): DateTime =
+proc parseDate(s: string): DateTime {.tags: [TimeEffect].} =
   # An ugly hack to get rid of ``{.tag: [TimeEffect].}``.
   # https://forum.nim-lang.org/t/3318#20981
   cast[proc (s: string): DateTime {.nimcall.}](parseDate1)(s)
