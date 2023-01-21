@@ -414,7 +414,7 @@ proc setRow(res: PPGresult, r: var Row, line, cols: int32) =
         DbValue(kind: dvkOther, o: DbOther(oid: oid, value: $val))
 
 iterator rows*(db: DbConn, query: SqlQuery,
-               args: varargs[DbValue, dbValue]): Row {.tags: [ReadDbEffect].} =
+               args: varargs[DbValue, dbValue]): Row {.tags: [ReadDbEffect, RootEffect].} =
   ## Executes the query and iterates over the result dataset.
   db.withStmt(query, args):
     var L = pqNfields(res)
@@ -425,7 +425,7 @@ iterator rows*(db: DbConn, query: SqlQuery,
 
 # Common
 iterator fastRows*(db: DbConn, query: SqlQuery,
-               args: varargs[DbValue, dbValue]): Row {.tags: [ReadDbEffect],
+               args: varargs[DbValue, dbValue]): Row {.tags: [ReadDbEffect, RootEffect],
                deprecated:"use rows() instead.".} =
   for r in rows(db, query, args): yield r
 
@@ -442,7 +442,7 @@ iterator fastRows*(db: DbConn, stmtName: SqlPrepared,
 
 iterator instantRows*(db: DbConn, query: SqlQuery,
                       args: varargs[string, `$`]): InstantRow
-                      {.old, tags: [ReadDbEffect].} =
+                      {.old, tags: [ReadDbEffect, RootEffect].} =
   ## same as fastRows but returns a handle that can be used to get column text
   ## on demand using []. Returned handle is valid only within iterator body.
   var res = setupQuery(db, query, args)
@@ -629,7 +629,7 @@ proc len*(row: InstantRow): int {.old, inline.} =
 # Common
 proc getRow*(db: DbConn, query: SqlQuery,
              args: varargs[DbValue, dbValue]): Option[Row]
-             {.tags: [ReadDbEffect].} =
+             {.tags: [ReadDbEffect, RootEffect].} =
   ## Retrieves a single row.
   for row in db.rows(query, args):
     return row.some
@@ -646,7 +646,7 @@ proc getRow*(db: DbConn, stmtName: SqlPrepared,
 # Common
 proc getAllRows*(db: DbConn, query: SqlQuery,
                  args: varargs[DbValue, dbValue]): seq[Row]
-                 {.tags: [ReadDbEffect].} =
+                 {.tags: [ReadDbEffect, RootEffect].} =
   ## Executes the query and returns the whole result dataset.
   result = @[]
   for r in db.rows(query, args):
