@@ -392,7 +392,7 @@ proc parseDate(s: string): DateTime {.tags: [TimeEffect].} =
   # https://forum.nim-lang.org/t/3318#20981
   cast[proc (s: string): DateTime {.nimcall.}](parseDate1)(s)
 
-proc setRow(res: PPGresult, r: var Row, line, cols: int32)  {.tags: [ReadDbEffect] .} =
+proc setRow(res: PPGresult, r: var Row, line, cols: int32)  {.tags: [ReadDbEffect, TimeEffect] .} =
   for col in 0'i32..<cols:
     if pqgetisnull(res, line, col) != 0:
       r[col] = dbValue(DbNull())
@@ -414,7 +414,7 @@ proc setRow(res: PPGresult, r: var Row, line, cols: int32)  {.tags: [ReadDbEffec
         DbValue(kind: dvkOther, o: DbOther(oid: oid, value: $val))
 
 iterator rows*(db: DbConn, query: SqlQuery,
-               args: varargs[DbValue, dbValue]): Row {.tags: [ReadDbEffect].} =
+               args: varargs[DbValue, dbValue]): Row {.tags: [ReadDbEffect, TimeEffect].} =
   ## Executes the query and iterates over the result dataset.
   db.withStmt(query, args):
     var L = pqNfields(res)
@@ -425,12 +425,12 @@ iterator rows*(db: DbConn, query: SqlQuery,
 
 # Common
 iterator fastRows*(db: DbConn, query: SqlQuery,
-               args: varargs[DbValue, dbValue]): Row {.tags: [ReadDbEffect],
+               args: varargs[DbValue, dbValue]): Row {.tags: [ReadDbEffect, TimeEffect],
                deprecated:"use rows() instead.".} =
   for r in rows(db, query, args): yield r
 
 iterator fastRows*(db: DbConn, stmtName: SqlPrepared,
-                   args: varargs[string, `$`]): RowOld {.old, tags: [ReadDbEffect].} =
+                   args: varargs[string, `$`]): RowOld {.old, tags: [ReadDbEffect, TimeEffect].} =
   ## executes the prepared query and iterates over the result dataset.
   var res = setupQuery(db, stmtName, args)
   var L = pqNfields(res)
@@ -629,7 +629,7 @@ proc len*(row: InstantRow): int {.old, inline.} =
 # Common
 proc getRow*(db: DbConn, query: SqlQuery,
              args: varargs[DbValue, dbValue]): Option[Row]
-             {.tags: [ReadDbEffect].} =
+             {.tags: [ReadDbEffect, TimeEffect].} =
   ## Retrieves a single row.
   for row in db.rows(query, args):
     return row.some
@@ -646,7 +646,7 @@ proc getRow*(db: DbConn, stmtName: SqlPrepared,
 # Common
 proc getAllRows*(db: DbConn, query: SqlQuery,
                  args: varargs[DbValue, dbValue]): seq[Row]
-                 {.tags: [ReadDbEffect].} =
+                 {.tags: [ReadDbEffect, TimeEffect].} =
   ## Executes the query and returns the whole result dataset.
   result = @[]
   for r in db.rows(query, args):
@@ -654,7 +654,7 @@ proc getAllRows*(db: DbConn, query: SqlQuery,
 
 proc getAllRows*(db: DbConn, stmtName: SqlPrepared,
                  args: varargs[string, `$`]): seq[RowOld] {.old, tags:
-                 [ReadDbEffect].} =
+                 [ReadDbEffect, TimeEffect].} =
   ## executes the prepared query and returns the whole result dataset.
   result = @[]
   for r in fastRows(db, stmtName, args):
