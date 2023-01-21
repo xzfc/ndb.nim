@@ -392,7 +392,7 @@ proc parseDate(s: string): DateTime =
   # https://forum.nim-lang.org/t/3318#20981
   cast[proc (s: string): DateTime {.nimcall.}](parseDate1)(s)
 
-proc setRow(res: PPGresult, r: var Row, line, cols: int32) =
+proc setRow(res: PPGresult, r: var Row, line, cols: int32)  {.tags: [ReadDbEffect] .} =
   for col in 0'i32..<cols:
     if pqgetisnull(res, line, col) != 0:
       r[col] = dbValue(DbNull())
