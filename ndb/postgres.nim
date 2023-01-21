@@ -49,7 +49,11 @@ import strutils
 import times
 import wrappers/libpq
 
-import db_common
+when NimMajor == 1 and NimMinor <= 7:
+  import std/db_common
+else:
+  import db_connector/db_common
+
 export db_common
 
 import macros
