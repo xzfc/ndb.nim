@@ -4,6 +4,7 @@ description   = "A db_sqlite fork with a proper typing"
 license       = "MIT"
 
 requires "nim >= 0.19.0"
+requires "db_connector >= 0.1.0"
 
 skipDirs = @["tests"]
 
