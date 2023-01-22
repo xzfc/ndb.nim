@@ -4,7 +4,8 @@ description   = "A db_sqlite fork with a proper typing"
 license       = "MIT"
 
 requires "nim >= 0.19.0"
-requires "db_connector >= 0.1.0"
+when NimMajor >= 1 and NimMinor >= 9:
+  requires "db_connector >= 0.1.0"
 
 skipDirs = @["tests"]
 
@@ -21,3 +22,7 @@ task test, "Run the test suite (all)":
 task benchmark, "Compile the benchmark":
   exec "nim c -d:mode=0 -d:release -o:tests/bsqlite.0 tests/bsqlite.nim"
   exec "nim c -d:mode=1 -d:release -o:tests/bsqlite.1 tests/bsqlite.nim"
+
+task docs, "Generate docs":
+  rmDir "docs/apidocs"
+  exec "nimble doc --outdir:docs/apidocs --project --index:on ndb/sqlite.nim"
