@@ -49,7 +49,11 @@ import strutils
 import times
 import wrappers/libpq
 
-import db_common
+when NimMajor == 1 and NimMinor <= 7:
+  import std/db_common
+else:
+  import db_connector/db_common
+
 export db_common
 
 import macros
@@ -368,7 +372,7 @@ proc prepare*(db: DbConn; stmtName: string, query: SqlQuery;
   if pqResultStatus(res) != PGRES_COMMAND_OK: dbError(db)
   return SqlPrepared(stmtName)
 
-proc setRow(res: PPGresult, r: var RowOld, line, cols: int32) =
+proc setRow(res: PPGresult, r: var RowOld, line, cols: int32) {.tags: [ReadDbEffect] .} =
   for col in 0'i32..cols-1:
     setLen(r[col], 0)
     let x = pqgetvalue(res, line, col)
@@ -377,18 +381,18 @@ proc setRow(res: PPGresult, r: var RowOld, line, cols: int32) =
     else:
       add(r[col], x)
 
-proc parseDate1(s: string): DateTime =
+proc parseDate1(s: string): DateTime {.tags: [TimeEffect].} =
   # TODO: parse optional fractional seconds
   # `select now();` => `2019-09-03 12:18:20.022531+00`
   # Reference: ISO 8601, https://www.postgresql.org/docs/11/datatype-datetime.html
   s.parse("yyyy-MM-dd HH:mm:sszz", utc())
 
-proc parseDate(s: string): DateTime =
+proc parseDate(s: string): DateTime {.tags: [TimeEffect].} =
   # An ugly hack to get rid of ``{.tag: [TimeEffect].}``.
   # https://forum.nim-lang.org/t/3318#20981
   cast[proc (s: string): DateTime {.nimcall.}](parseDate1)(s)
 
-proc setRow(res: PPGresult, r: var Row, line, cols: int32) =
+proc setRow(res: PPGresult, r: var Row, line, cols: int32)  {.tags: [ReadDbEffect, TimeEffect] .} =
   for col in 0'i32..<cols:
     if pqgetisnull(res, line, col) != 0:
       r[col] = dbValue(DbNull())
@@ -410,7 +414,7 @@ proc setRow(res: PPGresult, r: var Row, line, cols: int32) =
         DbValue(kind: dvkOther, o: DbOther(oid: oid, value: $val))
 
 iterator rows*(db: DbConn, query: SqlQuery,
-               args: varargs[DbValue, dbValue]): Row {.tags: [ReadDbEffect].} =
+               args: varargs[DbValue, dbValue]): Row {.tags: [ReadDbEffect, TimeEffect].} =
   ## Executes the query and iterates over the result dataset.
   db.withStmt(query, args):
     var L = pqNfields(res)
@@ -421,12 +425,12 @@ iterator rows*(db: DbConn, query: SqlQuery,
 
 # Common
 iterator fastRows*(db: DbConn, query: SqlQuery,
-               args: varargs[DbValue, dbValue]): Row {.tags: [ReadDbEffect],
+               args: varargs[DbValue, dbValue]): Row {.tags: [ReadDbEffect, TimeEffect],
                deprecated:"use rows() instead.".} =
   for r in rows(db, query, args): yield r
 
 iterator fastRows*(db: DbConn, stmtName: SqlPrepared,
-                   args: varargs[string, `$`]): RowOld {.old, tags: [ReadDbEffect].} =
+                   args: varargs[string, `$`]): RowOld {.old, tags: [ReadDbEffect, TimeEffect].} =
   ## executes the prepared query and iterates over the result dataset.
   var res = setupQuery(db, stmtName, args)
   var L = pqNfields(res)
@@ -625,7 +629,7 @@ proc len*(row: InstantRow): int {.old, inline.} =
 # Common
 proc getRow*(db: DbConn, query: SqlQuery,
              args: varargs[DbValue, dbValue]): Option[Row]
-             {.tags: [ReadDbEffect].} =
+             {.tags: [ReadDbEffect, TimeEffect].} =
   ## Retrieves a single row.
   for row in db.rows(query, args):
     return row.some
@@ -642,7 +646,7 @@ proc getRow*(db: DbConn, stmtName: SqlPrepared,
 # Common
 proc getAllRows*(db: DbConn, query: SqlQuery,
                  args: varargs[DbValue, dbValue]): seq[Row]
-                 {.tags: [ReadDbEffect].} =
+                 {.tags: [ReadDbEffect, TimeEffect].} =
   ## Executes the query and returns the whole result dataset.
   result = @[]
   for r in db.rows(query, args):
@@ -650,7 +654,7 @@ proc getAllRows*(db: DbConn, query: SqlQuery,
 
 proc getAllRows*(db: DbConn, stmtName: SqlPrepared,
                  args: varargs[string, `$`]): seq[RowOld] {.old, tags:
-                 [ReadDbEffect].} =
+                 [ReadDbEffect, TimeEffect].} =
   ## executes the prepared query and returns the whole result dataset.
   result = @[]
   for r in fastRows(db, stmtName, args):
