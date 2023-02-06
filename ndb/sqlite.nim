@@ -239,7 +239,7 @@ proc bindArgs(db: DbConn, stmt: var sqlite3.Pstmt, query: SqlQuery,
   return true
 
 proc tryWithStmt(db: DbConn, query: SqlQuery, args: seq[DbValue],
-                 body: proc(stmt: Pstmt): bool {.raises: [], tags: [].}): bool =
+                 body: proc(stmt: Pstmt): bool {.raises: [], tags: [], gcsafe.}): bool =
   ## A common template dealing with statement initialization and finalization:
   ##
   ## 1. Initialize a statement.
