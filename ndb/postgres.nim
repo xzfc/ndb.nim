@@ -221,7 +221,7 @@ proc dbError*(db: DbConn) {.noreturn.} =
 
 proc tryWithStmt(db: DbConn, query: SqlQuery, args: seq[DbValue],
                  expectedStatusType: ExecStatusType,
-                 body: proc(res: PPGresult): bool {.raises: [], tags: [].}): bool =
+                 body: proc(res: PPGresult): bool {.raises: [], tags: [], gcsafe.}): bool =
   ## A common template dealing with statement initialization and finalization:
   ##
   ## 1. Initialize a statement.
