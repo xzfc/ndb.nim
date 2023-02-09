@@ -1,6 +1,6 @@
-version       = "0.19.9"
-author        = "Albert Safin <xzfcpw@gmail.com>"
-description   = "A db_sqlite fork with a proper typing"
+version       = "0.1.0"
+author        = "Albert Safin <xzfcpw@gmail.com>" # Original Author of the package
+description   = "Low level db_sqlite and db_postgres forks with a proper typing"
 license       = "MIT"
 
 requires "nim >= 0.19.0"
@@ -25,4 +25,4 @@ task benchmark, "Compile the benchmark":
 
 task docs, "Generate docs":
   rmDir "docs/apidocs"
-  exec "nimble doc --outdir:docs/apidocs --project --index:on ndb/sqlite.nim"
+  exec "nimble doc --outdir:docs/apidocs --project --index:on lowdb/sqlite.nim"

@@ -1,4 +1,4 @@
-import ndb/postgres
+import lowdb/postgres
 import os
 import options
 import times
@@ -56,7 +56,7 @@ suite "Examples":
 #
 #    db.close()
 #  test "readme.md":
-#    #import ndb/sqlite
+#    #import lowdb/sqlite
 #    let db = test_open()
 #
 #    # Insert NULL

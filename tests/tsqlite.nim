@@ -1,4 +1,4 @@
-import ndb/sqlite
+import lowdb/sqlite
 import math
 import options
 import unittest
@@ -48,7 +48,7 @@ suite "Examples":
 
     db.close()
   test "readme.md":
-    #import ndb/sqlite
+    #import lowdb/sqlite
     let db = open(":memory:", "", "", "")
 
     # Insert NULL

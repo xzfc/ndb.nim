@@ -7,8 +7,8 @@ when mode == 0:
   import db_sqlite
   const name = "db_sqlite"
 else:
-  import ndb/sqlite
-  const name = "ndb/sqlite"
+  import lowdb/sqlite
+  const name = "lowdb/sqlite"
 
 template benchmark(benchmarkName: string, code: untyped) =
   var worst, best, total: float

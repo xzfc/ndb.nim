@@ -6,7 +6,7 @@
 ## Parameter substitution
 ## ======================
 ##
-## Unlike ``ndb/sqlite``, you have to use ``$1, $2, $3, ...`` instead of
+## Unlike ``lowdb/sqlite``, you have to use ``$1, $2, $3, ...`` instead of
 ## ``?`` as a parameter placeholders.
 ##
 ## .. code-block:: Nim
@@ -42,7 +42,7 @@
 ## See also
 ## ========
 ##
-## * `ndb/sqlite module <sqlite.html>`_ for SQLite database wrapper
+## * `lowdb/sqlite module <sqlite.html>`_ for SQLite database wrapper
 
 import options
 import strutils
@@ -58,7 +58,7 @@ export db_common
 
 import macros
 macro old(x: untyped): untyped =
-  when defined(ndbPostgresOld):
+  when defined(lowdbPostgresOld):
     return x
   else:
     return newNimNode(nnkEmpty)
