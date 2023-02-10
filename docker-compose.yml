@@ -1,14 +1,23 @@
 version: '3'
+
 services:
   postgres:
-    image: postgres:11
+    image: postgres
     environment:
-    - POSTGRES_PASSWORD=postgres
-  nimble:
-    build: utils
+      POSTGRES_PASSWORD: postgres
+
+  tests:
+    build: .
+    image: lowdb
     depends_on:
       - postgres
     volumes:
       - .:/usr/src/app
-    entrypoint: nimble
-    working_dir: /usr/src/app
+    command: nimble test
+
+  book:
+    build: .
+    image: lowdb
+    volumes:
+      - .:/usr/src/app
+    command: nimble nimidocs

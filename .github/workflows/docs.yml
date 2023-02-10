@@ -1,0 +1,72 @@
+name: github pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  api-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Cache choosenim
+        id: cache-choosenim
+        uses: actions/cache@v3
+        with:
+          path: ~/.choosenim
+          key: ${{ runner.os }}-choosenim-stable
+
+      - name: Cache nimble
+        id: cache-nimble
+        uses: actions/cache@v3
+        with:
+          path: ~/.nimble
+          key: ${{ runner.os }}-nimble-${{ hashFiles('lowdb.nimble') }}
+          restore-keys: |
+            ${{ runner.os }}-nimble-
+
+      - name: Setup nim
+        uses: jiro4989/setup-nim-action@v1
+        with:
+          nim-version: devel
+
+      - name: Install Packages
+        run: nimble install -y
+
+      - name: Build API docs
+        run: nimble --verbose docs
+
+      - name: Archive API docs
+        uses: actions/upload-artifact@v3
+        with:
+          name: api-docs
+          path: |
+            docs/apidocs
+
+  deploy-docs:
+    needs:
+      - api-docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all docs
+        uses: actions/download-artifact@v3
+
+      - name: Check files
+        run: |
+          find .
+
+      - name: Setup docs
+        run: |
+          mv api-docs/apidocs docs/
+
+      - name: Deploy
+        if: success()
+        uses: crazy-max/ghaction-github-pages@v3.1.0
+        with:
+          target_branch: gh-pages
+          build_dir: ./docs
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
